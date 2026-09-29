@@ -4,7 +4,7 @@ A flippable tattoo flashbook that reads its content from a Google Sheet.
 It works on desktop and on phones held sideways (landscape).
 
 - Post-it tabs on the right jump to each chapter
-- 4 flashes per page. Extra flashes flow onto new pages automatically
+- 4 flashes per page on a computer, 2 bigger ones on a phone. Extra flashes flow onto new pages automatically
 - Tap or click a flash to see it bigger, with size, price and a DM button
 - Arrows, swipe, or the ← → keys turn the pages
 
@@ -88,7 +88,8 @@ To add a chapter, add a row in **Chapters** and use its name in **Sketches**. To
 
 - **A message says it "couldn't read the Google Sheet".** Check that the file was saved as a Google Sheet (step 2.2), that it's shared *Anyone with the link*, and that the tabs are still named `Intro`, `Chapters`, `Sketches`. If you rename them, change the names in `js/config.js` too.
 - **A flash shows "drawing coming soon".** Its `image_link` is empty or the image isn't shared publicly.
-- **Change how many flashes fit on a page:** `perPage` in `js/config.js`.
+- **Change how many flashes fit on a page:** `perPage` (computer, default 4) and `perPageMobile` (phone, default 2) in `js/config.js`.
+- **Text too big or small on phones:** change `mobileTextSize` in `js/config.js` (1 = same as computer, default 0.72).
 - **Update the logo:** replace `assets/logo.png`, using the same file name.
 
 ## Files
