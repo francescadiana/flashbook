@@ -8,7 +8,7 @@
  * The Sheet must be shared as "Anyone with the link: Viewer".
  */
 window.FLASHBOOK_CONFIG = {
-  sheetId: "",
+  sheetId: "1CnAoKKc11uBspUojpvvWKdEYHACpsLBlm7d-b7hfZuU",
 
   // Tab names inside the Sheet (change only if you rename the tabs)
   tabs: { intro: "Intro", chapters: "Chapters", sketches: "Sketches" },
