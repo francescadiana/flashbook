@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>diana.inkkk · Flashbook</title>
+  <meta name="description" content="Tattoo flashbook by @diana.inkkk, Naples.">
+  <meta name="theme-color" content="#161616">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <meta property="og:title" content="diana.inkkk · Flashbook">
+  <meta property="og:description" content="Tattoo flashes by @diana.inkkk, Naples city center.">
+  <meta property="og:image" content="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700&family=Gochi+Hand&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="brand">
+    <img src="assets/logo.png" alt="" class="brand-logo">
+    <div class="brand-name"><span id="brandHandle">@diana.inkkk</span> <em>flashbook</em></div>
+  </header>
+
+  <main id="stage" class="stage" aria-label="Flashbook">
+    <div id="book" class="book">
+      <div id="leftPage" class="page left" aria-live="polite"></div>
+      <div id="rightPage" class="page right" aria-live="polite"></div>
+      <div id="leafHost" class="leaf-host"></div>
+      <nav id="tabs" class="tabs" aria-label="Chapters"></nav>
+    </div>
+  </main>
+
+  <div class="nav">
+    <button type="button" id="prevBtn" class="nav-btn prev" aria-label="Previous page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div id="pageLabel" class="page-label"></div>
+    <button type="button" id="nextBtn" class="nav-btn next" aria-label="Next page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Flash detail" hidden>
+    <button type="button" class="lb-close" id="lbClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="lb-inner">
+      <figure class="lb-figure" id="lbFigure"></figure>
+      <div class="lb-info">
+        <div class="lb-chapter" id="lbChapter"></div>
+        <h2 class="lb-title" id="lbTitle"></h2>
+        <div class="lb-meta" id="lbMeta"></div>
+        <p class="lb-notes" id="lbNotes"></p>
+        <a class="lb-cta" id="lbCta" target="_blank" rel="noopener">Ask me about this flash</a>
+        <div class="lb-nav">
+          <button type="button" class="nav-btn prev" id="lbPrev" aria-label="Previous flash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <div class="lb-pos" id="lbPos"></div>
+          <button type="button" class="nav-btn next" id="lbNext" aria-label="Next flash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="rotate" class="rotate" hidden>
+    <img src="assets/logo.png" alt="">
+    <svg viewBox="0 0 64 64" class="rotate-icon" aria-hidden="true"><rect x="20" y="8" width="24" height="44" rx="4"/><path d="M50 40a18 18 0 0 1-18 16"/><path d="M34 52l-3 4 4 3"/></svg>
+    <p>Turn your phone sideways<br>to flip through the book</p>
+    <button type="button" id="rotateDismiss">Continue anyway</button>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
