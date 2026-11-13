@@ -113,6 +113,8 @@ and opens the book on that page with the flash already open.
 
 ## Troubleshooting
 
+- **After an update the site looks broken (blank page, buttons do nothing).** The browser is mixing old and new files from its cache. Reload the page (on a phone: close the tab and reopen the link, or open it in a private tab). When you change `css/style.css` or any file in `js/`, also raise the `?v=3` number next to it in `index.html` (3 → 4): that forces every visitor to download the new files.
+
 - **A message says it "couldn't read the Google Sheet".** Check that the file was saved as a Google Sheet (step 2.2), that it's shared *Anyone with the link*, and that the tabs are still named `Intro`, `Chapters`, `Sketches`. If you rename them, change the names in `js/config.js` too.
 - **A flash shows "drawing coming soon".** Its `image_link` is empty or the image isn't shared publicly.
 - **Change how many flashes fit on a page:** `perPage` (computer, default 4) and `perPageMobile` (phone, default 2) in `js/config.js`.
