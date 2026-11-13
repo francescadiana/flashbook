@@ -176,6 +176,14 @@ img { display: block; }
 .toc-name { font-family: var(--display); font-size: max(34px, calc(18px * var(--k) / var(--s))); flex: 1; }
 .toc-p { font-size: var(--fs-body); color: var(--muted); }
 .contents p { margin: 0; font-size: var(--fs-body); line-height: 1.5; color: #333; }
+.ar-promo { display: flex; gap: 14px; align-items: center; background: var(--green); color: #111; padding: 14px 16px; border-radius: 6px; transform: rotate(-1.2deg); box-shadow: 3px 4px 0 rgba(0,0,0,.85); }
+.ar-promo svg { flex: none; width: 44px; height: 44px; fill: none; stroke: #111; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ar-promo strong { display: block; font-family: var(--display); font-weight: 400; font-size: max(30px, calc(18px * var(--k) / var(--s))); line-height: 1; margin-bottom: 4px; }
+.ar-promo span { font-size: var(--fs-body); line-height: 1.35; }
+body.single .ar-promo { padding: 10px 12px; gap: 10px; }
+body.single .ar-promo svg { width: 30px; height: 30px; }
+body.single .ar-promo strong { font-size: 26px; }
+body.single .ar-promo span { font-size: 13px; }
 .contents .hand { color: var(--green-dark); transform: rotate(-2deg); }
 
 /* chapter blurb on the first page of a chapter */
