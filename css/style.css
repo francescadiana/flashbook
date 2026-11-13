@@ -118,21 +118,29 @@ img { display: block; }
 }
 
 /* ---------- cover ---------- */
-.page.cover { background: var(--ink); }
+.page.cover { background: url("../assets/cloth.png") 0 0 / 192px, var(--ink); }
 .page.cover::after { display: none; }
 .cover-spine { position: absolute; left: 0; top: 0; bottom: 0; width: 18px; background: #0a0a0a; border-right: 1px solid #2a2a2a; }
 .cover-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; padding-right: 40px; }
-.cover-sticker {
-  width: 280px; height: 280px; border-radius: 50%; background: var(--paper);
-  display: flex; align-items: center; justify-content: center;
-  transform: rotate(-6deg); box-shadow: 0 8px 24px rgba(0,0,0,.6);
+.cover-print { width: 270px; }
+.cover-print img { width: 100%; height: auto; display: block; }   /* the logo is screen-printed straight onto the cloth */
+.cover-title {
+  padding: 0 30px; white-space: nowrap; font-family: var(--display); font-size: 88px; line-height: .9; color: #6BC43A; letter-spacing: 1px; text-align: center;
+  -webkit-mask-image: url("../assets/ink-grain.png"); mask-image: url("../assets/ink-grain.png"); -webkit-mask-size: 256px; mask-size: 256px;   /* worn ink */
 }
-.cover-sticker img { width: 220px; height: 210px; object-fit: contain; }
-.cover-title { padding: 0 30px; overflow-wrap: anywhere; font-family: var(--display); font-size: 88px; line-height: .9; color: var(--green); letter-spacing: 1px; text-align: center; }
 .cover-chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-.cover-chips span { font-family: var(--display); font-size: max(22px, calc(16px * var(--k) / var(--s))); padding: 4px 10px; background: #fff; }
-.cover-chips span:nth-child(odd) { background: var(--mint); color: var(--green-dark); }
+.cover-chips span {
+  font-family: var(--display); font-size: max(22px, calc(16px * var(--k) / var(--s))); padding: 3px 12px; color: #EEE6D2; border: 2px solid #EEE6D2; background: transparent; letter-spacing: 1px;
+  -webkit-mask-image: url("../assets/ink-grain.png"); mask-image: url("../assets/ink-grain.png"); -webkit-mask-size: 256px; mask-size: 256px;
+}
 .cover-hint { position: absolute; right: 90px; bottom: 44px; color: var(--paper); transform: rotate(-4deg); }
+.cover-lang { position: absolute; left: 44px; bottom: 34px; display: flex; gap: 8px; z-index: 2; }
+.cover-lang button {
+  min-width: 46px; min-height: 40px; padding: 4px 12px; cursor: pointer; background: transparent; color: #EEE6D2;
+  border: 2px solid rgba(238,230,210,.55); font-family: var(--display); font-size: max(18px, calc(16px * var(--k) / var(--s))); letter-spacing: 1px;
+}
+.cover-lang button[aria-pressed="true"] { background: #EEE6D2; border-color: #EEE6D2; color: #111; }
+.cover-lang button:focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
 
 /* ---------- intro ---------- */
 .intro .pad { gap: 22px; }
@@ -170,20 +178,8 @@ img { display: block; }
 .contents p { margin: 0; font-size: var(--fs-body); line-height: 1.5; color: #333; }
 .contents .hand { color: var(--green-dark); transform: rotate(-2deg); }
 
-/* ---------- chapter opener ---------- */
-.opener .pad { justify-content: space-between; }
-.opener .top { display: flex; flex-direction: column; gap: 18px; }
-.opener .hand.kicker { color: var(--green-dark); }
-.big-n { font-family: var(--display); font-size: 220px; line-height: .85; color: transparent; -webkit-text-stroke: 3px var(--ink); }
-.ch-name {
-  align-self: flex-start; background: var(--ink); color: var(--green);
-  font-family: var(--display); font-size: 72px; line-height: 1; padding: 10px 18px 14px;
-  text-transform: uppercase; max-width: 100%; overflow-wrap: anywhere;
-}
-.opener .caption { font-size: max(24px, calc(16px * var(--k) / var(--s))); }
-.opener .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.opener .bottom .hand { transform: rotate(-3deg); }
-.opener .bottom img { width: 84px; height: 80px; object-fit: contain; transform: rotate(8deg); }
+/* chapter blurb on the first page of a chapter */
+.blurb { font-size: max(18px, calc(16px * var(--k) / var(--s))); margin: -4px 0 0; }
 
 /* ---------- flash grid ---------- */
 .flashes .pad { gap: 18px; top: 48px; }
@@ -392,7 +388,7 @@ body.single .book::after {             /* spine strip with green stitching */
 }
 /* closed book: the cover itself is the object, its page block peeks out behind it */
 body.single.on-cover .book::before, body.single.on-cover .book::after { display: none; }
-body.single .page.cover { border-radius: 5px 12px 12px 5px; box-shadow: var(--stack), 0 16px 34px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.1); background: linear-gradient(135deg, #1d1d1b, #0d0d0c); }
+body.single .page.cover { border-radius: 5px 12px 12px 5px; box-shadow: var(--stack), 0 16px 34px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.1); background: url("../assets/cloth.png") 0 0 / 192px, linear-gradient(135deg, #1d1d1b, #0d0d0c); }
 body.single .cover-spine { width: 22px; background: linear-gradient(to right, #000, #1f1f1d); border-right: 0; }
 body.single .cover-inner::before { content: ""; position: absolute; inset: 16px 16px 16px 34px; border: 1.5px dashed rgba(114,210,60,.45); border-radius: 6px; pointer-events: none; }
 /* turned-down corner */
@@ -411,8 +407,9 @@ body.single .tab { z-index: 7; }
   body.single { --bt: 6px; --bl: 9px; --br: 10px; --bb: 10px; }
   body.single .page.right:not(.cover):not(.flip)::before { width: 26px; height: 26px; }
   body.single .page.cover .cover-inner { gap: 8px; }
-  body.single .page.cover .cover-sticker { width: 118px; height: 118px; }
-  body.single .page.cover .cover-sticker img { width: 92px; height: 88px; }
+  body.single .page.cover .cover-print { width: 118px; }
+  body.single .cover-lang { left: 34px; bottom: 12px; }
+  body.single .cover-lang button { min-height: 34px; font-size: 16px; }
   body.single .page.cover .cover-title { font-size: 52px; }
   body.single .page.cover .cover-chips span { font-size: 16px; padding: 2px 8px; }
   body.single .cover-inner::before { inset: 10px 12px 10px 30px; }
@@ -430,10 +427,10 @@ body.single .tab span { font-size: 17px; letter-spacing: .5px; }
 
 /* page contents */
 body.single .cover-inner { padding-right: 24px; gap: calc(30px * var(--u)); }
-body.single .cover-sticker { width: calc(280px * var(--u)); height: calc(280px * var(--u)); }
-body.single .cover-sticker img { width: calc(220px * var(--u)); height: calc(210px * var(--u)); }
+body.single .cover-print { width: calc(270px * var(--u)); }
 body.single .cover-title { font-size: min(calc(88px * var(--u)), calc((var(--pw) - 90px) / 6.4)); padding: 0 12px; overflow-wrap: normal; }
 body.single .cover-chips span { font-size: 18px; }
+body.single .cover-lang { left: 38px; bottom: 20px; }
 body.single .cover-hint { right: 56px; bottom: 22px; }
 
 body.single .intro .pad { gap: 16px; }
@@ -449,11 +446,7 @@ body.single .toc button { padding: 10px 0; min-height: 48px; }
 body.single .toc-n { font-size: 18px; }
 body.single .toc-name { font-size: 26px; }
 
-body.single .opener .top { gap: 12px; }
-body.single .big-n { font-size: calc(220px * var(--u)); -webkit-text-stroke-width: 2px; }
-body.single .ch-name { font-size: calc(72px * var(--u)); padding: 8px 14px 12px; }
-body.single .opener .caption { font-size: 20px; }
-body.single .opener .bottom img { width: calc(84px * var(--u)); height: calc(80px * var(--u)); }
+body.single .blurb { font-size: 18px; }
 
 body.single .flashes .pad { top: 18px; gap: 12px; }
 body.single .flash-head .chip { font-size: 18px; }

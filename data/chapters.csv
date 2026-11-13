@@ -1,4 +1,4 @@
-order,chapter,tab_color,blurb
-1,Animals,green,
-2,Stamps,mint,
-3,Symbols,black,
+order,chapter,tab_color,blurb,chapter_it
+1,Animals,green,,Animali
+2,Stamps,mint,,Francobolli
+3,Symbols,black,,Simboli

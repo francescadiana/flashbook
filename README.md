@@ -60,7 +60,7 @@ You never need to touch GitHub again. Changes in the Sheet show up when the page
 | instagram | Your handle, without @. Used for every DM button |
 | booking_note | Optional handwritten note on the booking page (deposit, aftercare…) |
 | cover_title | Big title on the cover (default FLASHBOOK) |
-| cover_tags | Small labels on the cover, separated by commas (e.g. `Vol. 01, Napoli`) |
+| cover_tags | Small labels on the cover, separated by commas (e.g. `Napoli`). Labels like "Vol. 01" are never shown |
 | signoff | Handwritten line on the last page |
 
 **Chapters** — one row per post-it
@@ -88,7 +88,17 @@ You never need to touch GitHub again. Changes in the Sheet show up when the page
 
 To add a chapter, add a row in **Chapters** and use its name in **Sketches**. To rename a chapter, rename it in both tabs.
 
-## 4. "Provatelo addosso" (try it on) and story links
+## 4. Languages (Italiano / English)
+
+The cover has an **IT / EN** switch. The choice is remembered on the visitor's device; the first time, the browser language decides.
+Everything fixed in the book (buttons, labels, page texts, camera messages) is translated. The texts you write in your Sheet are translated like this:
+
+- **With columns/rows named `..._it` or `..._en`.** In *Sketches* add `title_it`, `notes_it` (and `title_en`, ...). In *Chapters* add `chapter_it`, `blurb_it`. In *Intro* add rows like `greeting_it`, `intro_text_it`, `signoff_it`. The version in the visitor's language is used; if it is empty, the normal column is shown.
+- **Or in `js/config.js`**, in the `translations` list: `"text as written in the Sheet": "translated text"`. Handy for chapter names and the intro.
+
+Links to a flash (section 5) are the same in both languages.
+
+## 5. "Provatelo addosso" (try it on) and story links
 
 ### Try it on
 Open any flash and press **Provatelo addosso**. The camera opens with the flash on top:
@@ -128,6 +138,7 @@ js/config.js             your settings: Sheet ID, flashes per page
 js/app.js                the book engine
 js/ar.js                 "Provatelo addosso": camera, overlay, photo capture (texts at the top)
 assets/logo.png          logo (also the browser tab icon)
+assets/logo-serigrafia.png  the screen-printed logo on the cover (+ cloth.png and ink-grain.png textures)
 data/*.csv               demo content, used when no Sheet is connected
 flashes/                 optional: put image files here instead of Drive
 sheet-template/          the Google Sheet template to upload to Drive
