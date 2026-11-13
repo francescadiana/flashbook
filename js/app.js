@@ -416,10 +416,11 @@
 
   function layout() {
     var W = window.innerWidth, H = window.innerHeight, root = document.documentElement.style;
-    var single = W < 700 || H <= 520 || (W < 900 && H > W);   // phones, and tablets held upright
+    var single = H > W && W < 900;   // phones and small tablets held upright: one page. Held sideways / computers: the open book
     var modeChanged = single !== state.single;
     state.single = single;
     document.body.classList.toggle("single", single);
+    if (single) document.body.classList.remove("short");
 
     if (single) {
       var iv = insets(), navH = H <= 520 ? 52 : 68;
@@ -438,7 +439,11 @@
 
     els.book.style.width = ""; els.book.style.height = "";
     root.setProperty("--u", "1");
-    var availW = W - 48, availH = H - 84 - 90, offX = 24, offY = 84;
+    var short = H <= 520;     // phone held sideways: brand + page label in a column on the left, arrows at the sides
+    document.body.classList.toggle("short", short);
+    var availW, availH, offX, offY;
+    if (short) { offX = 118; offY = 8; availW = W - offX - 80; availH = H - 16; }
+    else { offX = 24; offY = 84; availW = W - 48; availH = H - offY - 90; }
     var s = Math.max(0.2, Math.min(availW / (BOOK_W + 2 * TAB_OUT), availH / BOOK_H, 1.3));
     var changedS = modeChanged || Math.abs(s - state.scale) > 0.001;
     state.scale = s;
