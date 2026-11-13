@@ -93,7 +93,7 @@ To add a chapter, add a row in **Chapters** and use its name in **Sketches**. To
 ### Try it on
 Open any flash and press **Provatelo addosso**. The camera opens with the flash on top:
 drag to move it, pinch to resize and rotate (on a computer: mouse wheel to resize, Shift + wheel to rotate, or use the sliders).
-**Effetto inchiostro** makes the white of the drawing transparent, so it looks like ink on skin.
+The white of the drawing is always transparent, so it looks like ink on skin.
 Press the round button to take the photo, then **Salva foto** (on iPhone a menu opens: choose *Salva immagine*).
 Photos never leave the visitor's device.
 

@@ -24,7 +24,7 @@
     stage: $("arStage"), video: $("arVideo"), photo: $("arPhoto"), art: $("arArt"),
     title: $("arTitle"), hint: $("arHint"), close: $("arClose"),
     msg: $("arMsg"), msgText: $("arMsgText"), file: $("arFile"), retry: $("arRetry"),
-    size: $("arSize"), rot: $("arRot"), ink: $("arInk"), shutter: $("arShutter"), flip: $("arFlip"),
+    size: $("arSize"), rot: $("arRot"), shutter: $("arShutter"), flip: $("arFlip"),
     result: $("arResult"), resultImg: $("arResultImg"), again: $("arAgain"), save: $("arSave"), saveNote: $("arSaveNote")
   };
 
@@ -60,11 +60,6 @@
 
   el.size.addEventListener("input", function () { var b = box(); st.w = (parseFloat(el.size.value) / 100) * Math.min(b.W, b.H); applyArt(); });
   el.rot.addEventListener("input", function () { st.rot = parseFloat(el.rot.value) * Math.PI / 180; applyArt(); });
-  el.ink.addEventListener("click", function () {
-    st.ink = !st.ink;
-    el.ink.setAttribute("aria-pressed", st.ink ? "true" : "false");
-    el.art.classList.toggle("ink", st.ink);
-  });
 
   /* gestures: one finger drags, two fingers pinch (size) + twist (rotation) */
   var ptrs = {};
@@ -294,8 +289,7 @@
     var tok = st.token;
     st.lastFocus = document.activeElement;
     st.canFlip = false; st.ink = true; st.facing = "user"; st.mirrored = true;
-    el.ink.setAttribute("aria-pressed", "true");
-    el.art.classList.add("ink");
+    el.art.classList.add("ink");      // ink effect is always on: the white of the drawing is see-through
     el.title.textContent = opts.title || "";
     el.result.hidden = true; hideMsg();
     el.art.removeAttribute("src");
