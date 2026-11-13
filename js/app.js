@@ -77,7 +77,8 @@
       "nav.cover": "Copertina", "nav.about": "Chi sono", "nav.contents": "Indice", "nav.contact": "Contatti", "nav.goto": "Vai al capitolo {name}",
       "cover.hint": "sfogliami →", "cover.lang": "Lingua",
       "intro.greeting": "Ciao!", "intro.photo": "Foto dell'artista", "intro.that": "sono io!", "intro.dm": "DM @{handle}",
-      "contents.title": "Cosa c'è dentro", "contents.p": "Ogni flash è disegnato da me. Tocca un flash per vederlo più grande e provarlo addosso con la fotocamera.",
+      "contents.title": "Cosa c'è dentro", "contents.p": "Ogni flash è disegnato da me. Tocca un flash per vederlo più grande.",
+      "contents.arT": "Provatelo addosso!", "contents.arP": "Apri un flash e premi il pulsante: la fotocamera si accende e vedi il tatuaggio sulla tua pelle. Poi scatta e salva.",
       "contents.hand": "tocca un post-it per saltare ↗", "contents.page": "p. {n}",
       "flash.page": "pagina {p} di {n}", "flash.soon": "disegno in arrivo", "flash.none": "nuovi flash in arrivo", "flash.taken": "TATUATO", "flash.see": "Guarda {title} più grande",
       "filler": "appunti e scarabocchi",
@@ -106,7 +107,8 @@
       "nav.cover": "Cover", "nav.about": "About me", "nav.contents": "Contents", "nav.contact": "Get in touch", "nav.goto": "Go to chapter {name}",
       "cover.hint": "open me →", "cover.lang": "Language",
       "intro.greeting": "Hey you!", "intro.photo": "Photo of the artist", "intro.that": "that's me!", "intro.dm": "DM @{handle}",
-      "contents.title": "What's inside", "contents.p": "Every flash is drawn by me. Tap one to see it bigger and try it on with your camera.",
+      "contents.title": "What's inside", "contents.p": "Every flash is drawn by me. Tap one to see it bigger.",
+      "contents.arT": "Try it on!", "contents.arP": "Open a flash and tap the button: your camera turns on and you see the tattoo on your own skin. Then snap and save.",
       "contents.hand": "tap a post-it to jump ↗", "contents.page": "p. {n}",
       "flash.page": "page {p} of {n}", "flash.soon": "drawing coming soon", "flash.none": "new flashes coming soon", "flash.taken": "TAKEN", "flash.see": "See {title} bigger",
       "filler": "notes & doodles",
@@ -398,6 +400,7 @@
               '</span><span class="toc-p">' + esc(t("contents.page", { n: m.chapterNum[ci] })) + "</span></button>";
           }).join("") + "</div>" +
           "<p>" + esc(t("contents.p")) + "</p>" +
+          '<div class="ar-promo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg><div><strong>' + esc(t("contents.arT")) + "</strong><span>" + esc(t("contents.arP")) + "</span></div></div>" +
           '<div class="hand">' + esc(t("contents.hand")) + "</div></div>" + pnum(p);
         break;
 
