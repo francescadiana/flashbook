@@ -1,12 +1,13 @@
 # @diana.inkkk · Flashbook
 
 A flippable tattoo flashbook that reads its content from a Google Sheet.
-It works on desktop and on phones held sideways (landscape).
+It is mobile first: on phones (and tablets held upright) you see **one page at a time, nearly full screen**, at real size.
+On a computer or a wide tablet you get the two-page open book.
 
 - Post-it tabs on the right jump to each chapter
-- 4 flashes per page on a computer, 2 bigger ones on a phone. Extra flashes flow onto new pages automatically
+- 4 flashes per page on a computer, 2 bigger ones on a phone (stacked when held upright, side by side when held sideways). Extra flashes flow onto new pages automatically
 - Tap or click a flash to see it bigger, with size, price and a DM button
-- Arrows, swipe, or the ← → keys turn the pages
+- Arrows, swipe, or the ← → keys turn the pages. On a phone the bar at the bottom shows the chapter and page number
 - **"Provatelo addosso"**: try any flash on yourself with the camera, take a photo and save it to the device
 - **Direct link for every flash**, ready for Instagram stories
 
@@ -115,7 +116,7 @@ and opens the book on that page with the flash already open.
 - **A message says it "couldn't read the Google Sheet".** Check that the file was saved as a Google Sheet (step 2.2), that it's shared *Anyone with the link*, and that the tabs are still named `Intro`, `Chapters`, `Sketches`. If you rename them, change the names in `js/config.js` too.
 - **A flash shows "drawing coming soon".** Its `image_link` is empty or the image isn't shared publicly.
 - **Change how many flashes fit on a page:** `perPage` (computer, default 4) and `perPageMobile` (phone, default 2) in `js/config.js`.
-- **Text too big or small on phones:** change `mobileTextSize` in `js/config.js` (1 = same as computer, default 0.72).
+- **Text size on phones:** phones show the page at real size, so text is always at least 16px. `mobileTextSize` in `js/config.js` only affects small desktop windows.
 - **Update the logo:** replace `assets/logo.png`, using the same file name.
 
 ## Files
