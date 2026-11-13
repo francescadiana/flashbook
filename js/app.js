@@ -422,8 +422,9 @@
     document.body.classList.toggle("single", single);
 
     if (single) {
-      var iv = insets(), M = 8, navH = H <= 520 ? 52 : 68;
-      var pw = Math.round(W - 2 * M - iv.l - iv.r), ph = Math.round(H - M - iv.t - navH - iv.b);
+      var iv = insets(), navH = H <= 520 ? 52 : 68;
+      var m = H <= 520 ? { t: 12, l: 16, r: 18, b: 14 } : { t: 22, l: 24, r: 28, b: 24 };   // room around the book: hard cover + a bit of desk
+      var pw = Math.round(W - m.l - m.r - iv.l - iv.r), ph = Math.round(H - m.t - iv.t - navH - iv.b - m.b);
       var changed = modeChanged || Math.abs(pw - state.pw) > 1 || Math.abs(ph - state.ph) > 1;
       state.pw = pw; state.ph = ph; state.scale = 1; state.compact = true;
       root.setProperty("--s", "1"); root.setProperty("--k", "1");
@@ -431,7 +432,7 @@
       root.setProperty("--nav-h", navH + "px");
       root.setProperty("--pw", pw + "px"); root.setProperty("--ph", ph + "px");
       els.book.style.width = pw + "px"; els.book.style.height = ph + "px";
-      els.book.style.transform = "translate(" + (M + iv.l) + "px," + (M + iv.t) + "px)";
+      els.book.style.transform = "translate(" + (m.l + iv.l) + "px," + (m.t + iv.t) + "px)";
       return changed;
     }
 
@@ -454,10 +455,10 @@
   /* ---------------- rendering & flipping ---------------- */
   function showSpread(i, dir) {
     var sp = state.spreads[i];
+    document.body.classList.toggle("on-cover", !!(sp.single && sp.single.t === "cover"));
     if (sp.single) {
       els.left.className = "page left"; els.left.innerHTML = "";
       paint(els.right, sp.single, "right");
-      if (dir && !reduceMotion) els.right.classList.add("enter-" + dir);   // quick slide instead of the 3D page turn
     } else {
       paint(els.left, sp.left, "left");
       paint(els.right, sp.right, "right");
@@ -478,7 +479,7 @@
     var from = state.spreads[state.cur], target = state.spreads[to], fwd = to > state.cur;
     state.cur = to;
     layout();
-    if (state.single) { showSpread(to, fwd ? "fwd" : "back"); return; }
+    if (state.single) { turnSingle(from.single, target.single, to, fwd); return; }
     if (reduceMotion) { showSpread(to); return; }
     state.busy = true;
 
@@ -506,6 +507,32 @@
     leaf.addEventListener("transitionend", function (e) { if (e.target === leaf) finish(); });
     setTimeout(finish, 900);
     updateTabs(); updateNav();
+  }
+
+  // phone page turn: forward, the old page lifts off the spine and fades away; back, the earlier page falls back into place
+  function turnSingle(oldPage, newPage, to, fwd) {
+    if (reduceMotion) { showSpread(to); return; }
+    state.busy = true;
+    var r = renderPage(fwd ? oldPage : newPage, "right");
+    var leaf = document.createElement("div");
+    leaf.className = "flip " + r.cls;
+    leaf.innerHTML = r.html;
+    var done = false;
+    function finish() {
+      if (done) return; done = true;
+      leaf.remove();
+      if (!fwd) showSpread(to);
+      state.busy = false;
+    }
+    if (fwd) showSpread(to);                       // new page is already underneath
+    else { updateTabs(); updateNav(); leaf.style.transform = "rotateY(-100deg)"; leaf.style.opacity = "0"; }
+    els.leafHost.appendChild(leaf);
+    leaf.getBoundingClientRect();                  // commit start state
+    leaf.classList.add("go");
+    leaf.style.transform = fwd ? "rotateY(-100deg)" : "none";
+    leaf.style.opacity = fwd ? "0" : "1";
+    leaf.addEventListener("transitionend", function (e) { if (e.target === leaf && e.propertyName === "transform") finish(); });
+    setTimeout(finish, 700);
   }
 
   /* ---------------- lightbox ---------------- */

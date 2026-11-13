@@ -7,7 +7,7 @@
   --ink: #111111;
   --paper: #F3F0E7;
   --paper-2: #ECE8DC;
-  --desk: #161616;
+  --desk: #2e2d2a;
   --muted: #555555;
   --s: 1;               /* book scale, set by app.js */
   --k: 1;               /* text size factor: 1 on desktop, smaller on phones (set by app.js) */
@@ -23,7 +23,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body {
-  background: var(--desk);
+  background: var(--desk) radial-gradient(ellipse at 50% 38%, #46453f 0%, #2e2d2a 62%, #232321 100%) fixed;
   color: var(--ink);
   font-family: var(--body);
   overflow: hidden;
@@ -350,16 +350,63 @@ img { display: block; }
 /* app.js sets body.single when the window is narrow (< 700px) or short (<= 520px) and gives the book the exact
    pixel size of the screen (--pw / --ph), so nothing is scaled down. --u shrinks the big display type a little on narrow screens. */
 body.single .brand { display: none; }
-body.single .book { transition: none; perspective: none; }
-body.single .page { width: 100%; height: 100%; left: 0; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.45); }
+body.single .book { transition: none; perspective: 1700px; }
+body.single .page { width: 100%; height: 100%; left: 0; border-radius: 3px 9px 9px 3px; box-shadow: var(--stack); }
 body.single .page.left { display: none; }
-body.single .page::after { display: none; }
+/* gutter shadow next to the binding */
+body.single .page.right::after { display: block; left: 0; width: 30px; background: linear-gradient(to right, rgba(0,0,0,.2), rgba(0,0,0,0)); }
+body.single .page.cover::after { display: none; }
 body.single .pad, body.single .page.right .pad { inset: 22px 60px 46px 22px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 body.single .pnum, body.single .page.left .pnum, body.single .page.right .pnum { left: 22px; right: auto; bottom: 14px; }
-body.single .page.enter-fwd { animation: enterFwd .28s ease; }
-body.single .page.enter-back { animation: enterBack .28s ease; }
-@keyframes enterFwd { from { opacity: 0; transform: translateX(7%); } to { opacity: 1; transform: none; } }
-@keyframes enterBack { from { opacity: 0; transform: translateX(-7%); } to { opacity: 1; transform: none; } }
+
+
+/* ---- the book object (phones): hard cover around the page, page block on the right/bottom, stitched spine ---- */
+body.single {
+  --stack: 1px 1px 0 #e9e5d9, 2px 2px 0 #b9b3a2, 3px 3px 0 #e9e5d9, 4px 4px 0 #b9b3a2, 5px 5px 0 #e9e5d9, 6px 6px 0 #a9a392;
+  --bt: 10px; --bl: 13px; --br: 15px; --bb: 15px;
+}
+body.single .book::before {            /* back + edges of the hard cover */
+  content: ""; position: absolute; z-index: -2;
+  inset: calc(-1 * var(--bt)) calc(-1 * var(--br)) calc(-1 * var(--bb)) calc(-1 * var(--bl));
+  background: linear-gradient(135deg, #1d1d1b, #0d0d0c);
+  border-radius: 7px 15px 15px 7px;
+  box-shadow: 0 16px 34px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.07);
+}
+body.single .book::after {             /* spine strip with green stitching */
+  content: ""; position: absolute; z-index: -1;
+  left: calc(-1 * var(--bl)); top: calc(-1 * var(--bt)); bottom: calc(-1 * var(--bb)); width: calc(var(--bl) + 5px);
+  border-radius: 7px 0 0 7px;
+  background:
+    repeating-linear-gradient(to bottom, #72D23C 0 7px, transparent 7px 15px) 5px 14px / 2px calc(100% - 28px) no-repeat,
+    linear-gradient(to right, #000, #1f1f1d);
+}
+/* closed book: the cover itself is the object, its page block peeks out behind it */
+body.single.on-cover .book::before, body.single.on-cover .book::after { display: none; }
+body.single .page.cover { border-radius: 5px 12px 12px 5px; box-shadow: var(--stack), 0 16px 34px rgba(0,0,0,.55), inset 0 0 0 1.5px rgba(255,255,255,.1); background: linear-gradient(135deg, #1d1d1b, #0d0d0c); }
+body.single .cover-spine { width: 22px; background: linear-gradient(to right, #000, #1f1f1d); border-right: 0; }
+body.single .cover-inner::before { content: ""; position: absolute; inset: 16px 16px 16px 34px; border: 1.5px dashed rgba(114,210,60,.45); border-radius: 6px; pointer-events: none; }
+/* turned-down corner */
+body.single .page.right:not(.cover):not(.flip)::before {
+  content: ""; position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; z-index: 3; pointer-events: none;
+  background: linear-gradient(135deg, rgba(0,0,0,0) 50%, #c9c3b0 50%, #f9f7f0 100%);
+  border-radius: 100% 0 0 0 / 100% 0 0 0;
+  filter: drop-shadow(-2px -2px 3px rgba(0,0,0,.28));
+}
+/* page being turned */
+body.single .flip { position: absolute; left: 0; top: 0; z-index: 6; transform-origin: left center; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: none; will-change: transform, opacity; }
+body.single .flip.go { transition: transform .5s cubic-bezier(.5,.05,.3,1), opacity .5s ease-in; }
+body.single .flip::after { content: ""; position: absolute; inset: 0; pointer-events: none; display: block; width: auto; background: linear-gradient(to right, rgba(0,0,0,.28), rgba(0,0,0,0) 70%); }
+body.single .tab { z-index: 7; }
+@media (orientation: landscape) {
+  body.single { --bt: 6px; --bl: 9px; --br: 10px; --bb: 10px; }
+  body.single .page.right:not(.cover):not(.flip)::before { width: 26px; height: 26px; }
+  body.single .page.cover .cover-inner { gap: 8px; }
+  body.single .page.cover .cover-sticker { width: 118px; height: 118px; }
+  body.single .page.cover .cover-sticker img { width: 92px; height: 88px; }
+  body.single .page.cover .cover-title { font-size: 52px; }
+  body.single .page.cover .cover-chips span { font-size: 16px; padding: 2px 8px; }
+  body.single .cover-inner::before { inset: 10px 12px 10px 30px; }
+}
 
 /* bottom bar */
 body.single .nav { bottom: env(safe-area-inset-bottom); height: var(--nav-h, 68px); gap: 16px; }
