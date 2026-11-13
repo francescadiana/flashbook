@@ -1,10 +1,14 @@
 field,value
 greeting,Hey you!
+greeting_it,Ciao!
 intro_text,"I'm a tattoo beginner based in Naples, city center.
 These are some of my flashes: have a look and reach out!"
+intro_text_it,"Sono agli inizi con il tatuaggio, a Napoli, in centro.
+Questi sono alcuni dei miei flash: dai un'occhiata e scrivimi!"
 photo_link,
 instagram,diana.inkkk
 booking_note,
 cover_title,FLASHBOOK
-cover_tags,"Vol. 01, Napoli"
+cover_tags,Napoli
 signoff,see you in Naples!
+signoff_it,ci vediamo a Napoli!

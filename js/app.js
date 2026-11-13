@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var CFG = Object.assign({ sheetId: "", tabs: { intro: "Intro", chapters: "Chapters", sketches: "Sketches" }, perPage: 4, perPageMobile: 2, mobileTextSize: 0.72, currency: "€" }, window.FLASHBOOK_CONFIG || {});
+  var CFG = Object.assign({ sheetId: "", tabs: { intro: "Intro", chapters: "Chapters", sketches: "Sketches" }, perPage: 4, perPageMobile: 2, mobileTextSize: 0.72, currency: "€", translations: {} }, window.FLASHBOOK_CONFIG || {});
   var BOOK_W = 1080, BOOK_H = 760, PAGE_W = 540, TAB_OUT = 80;
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -15,7 +15,7 @@
     toast: $("toast"), handle: $("brandHandle")
   };
 
-  var state = { data: null, spreads: [], cur: 0, busy: false, scale: 1, compact: false, lb: null, single: false, builtSingle: null, pw: 0, ph: 0 };
+  var state = { data: null, spreads: [], cur: 0, busy: false, scale: 1, compact: false, lb: null, single: false, builtSingle: null, pw: 0, ph: 0, lang: "en", raw: null };
 
   /* ---------------- helpers ---------------- */
   function esc(s) {
@@ -65,6 +65,100 @@
       t.src = t.dataset.fallback;
     }
   }, true);
+
+
+  /* ---------------- languages ---------------- */
+  // All the fixed texts of the book. Texts that come from the Google Sheet are translated with "_it" / "_en" columns
+  // (e.g. title_it) or with the "translations" list in js/config.js.
+  var STR = {
+    it: {
+      "meta.desc": "Flashbook di tatuaggi di @{handle}.",
+      "nav.prev": "Pagina precedente", "nav.next": "Pagina successiva", "nav.chapters": "Capitoli",
+      "nav.cover": "Copertina", "nav.about": "Chi sono", "nav.contents": "Indice", "nav.contact": "Contatti", "nav.goto": "Vai al capitolo {name}",
+      "cover.hint": "sfogliami →", "cover.lang": "Lingua",
+      "intro.greeting": "Ciao!", "intro.photo": "Foto dell'artista", "intro.that": "sono io!", "intro.dm": "DM @{handle}",
+      "contents.title": "Cosa c'è dentro", "contents.p": "Ogni flash è disegnato da me. Tocca un flash per vederlo più grande.",
+      "contents.hand": "tocca un post-it per saltare ↗", "contents.page": "p. {n}",
+      "flash.page": "pagina {p} di {n}", "flash.soon": "disegno in arrivo", "flash.none": "nuovi flash in arrivo", "flash.taken": "TATUATO", "flash.see": "Guarda {title} più grande",
+      "filler": "appunti e scarabocchi",
+      "back.title": "Ti è piaciuto qualcosa?", "back.sub": "Ecco come lo rendiamo tuo",
+      "back.s1": "Fai uno screenshot del flash che ti piace.", "back.s2a": "Scrivimi su Instagram a ", "back.s2b": ", con misura e zona del corpo.", "back.s3": "Troviamo insieme una data.",
+      "thanks.big": "Grazie!", "thanks.sign": "a presto!", "untitled": "Senza titolo",
+      "lb.dialog": "Dettaglio del flash", "lb.close": "Chiudi", "lb.prev": "Flash precedente", "lb.next": "Flash successivo",
+      "lb.size": "Misura", "lb.price": "Prezzo", "lb.avail": "DISPONIBILE", "lb.done": "GIÀ TATUATO",
+      "lb.ask": "Chiedimi info su questo flash", "lb.similar": "Chiedi qualcosa di simile",
+      "lb.ar": "Provatelo addosso", "lb.link": "Copia link per le storie", "lb.copied": "Link copiato ✓",
+      "lb.copiedToast": "Link copiato! Incollalo nello sticker «Link» della storia.", "lb.prompt": "Copia questo link:", "lb.gone": "Questo flash non c'è più.",
+      "err.sheet": "Non riesco a leggere il Google Sheet ({msg}). Mostro le pagine di esempio.", "err.load": "Non riesco a caricare i dati del flashbook: {msg}",
+      "ar.dialog": "Provatelo addosso", "ar.close": "Chiudi", "ar.hint": "Trascina per spostare · pizzica per ingrandire e ruotare",
+      "ar.camDenied": "Non riesco ad accedere alla fotocamera. Consenti l'accesso nelle impostazioni del browser e riprova.",
+      "ar.camUnsupported": "Questo browser non permette di usare la fotocamera dal sito.",
+      "ar.inApp": "Sei dentro il browser di Instagram, che spesso blocca la fotocamera. Tocca ⋯ e scegli «Apri nel browser» (Safari/Chrome), oppure scatta una foto qui sotto.",
+      "ar.artFail": "Non riesco a caricare il disegno di questo flash.",
+      "ar.saveFail": "Non riesco a salvare la foto da qui (immagine protetta). Fai uno screenshot oppure riprova più tardi.",
+      "ar.saved": "Foto salvata!", "ar.iosHint": "Nel menu che si apre scegli «Salva immagine».",
+      "ar.photo": "Scatta o carica una foto", "ar.retry": "Riprova con la fotocamera", "ar.size": "Dimensione", "ar.rot": "Rotazione",
+      "ar.shutter": "Scatta la foto", "ar.flip": "Cambia fotocamera", "ar.alt": "La tua foto con il flash", "ar.again": "Rifai", "ar.save": "Salva foto"
+    },
+    en: {
+      "meta.desc": "Tattoo flashbook by @{handle}.",
+      "nav.prev": "Previous page", "nav.next": "Next page", "nav.chapters": "Chapters",
+      "nav.cover": "Cover", "nav.about": "About me", "nav.contents": "Contents", "nav.contact": "Get in touch", "nav.goto": "Go to chapter {name}",
+      "cover.hint": "open me →", "cover.lang": "Language",
+      "intro.greeting": "Hey you!", "intro.photo": "Photo of the artist", "intro.that": "that's me!", "intro.dm": "DM @{handle}",
+      "contents.title": "What's inside", "contents.p": "Every flash is drawn by me. Tap one to see it bigger.",
+      "contents.hand": "tap a post-it to jump ↗", "contents.page": "p. {n}",
+      "flash.page": "page {p} of {n}", "flash.soon": "drawing coming soon", "flash.none": "new flashes coming soon", "flash.taken": "TAKEN", "flash.see": "See {title} bigger",
+      "filler": "notes & doodles",
+      "back.title": "Liked something?", "back.sub": "Here's how we make it yours",
+      "back.s1": "Screenshot the flash you like.", "back.s2a": "DM it to ", "back.s2b": " with size and placement.", "back.s3": "We pick a date together.",
+      "thanks.big": "Thank you!", "thanks.sign": "see you soon!", "untitled": "Untitled",
+      "lb.dialog": "Flash detail", "lb.close": "Close", "lb.prev": "Previous flash", "lb.next": "Next flash",
+      "lb.size": "Size", "lb.price": "Price", "lb.avail": "AVAILABLE", "lb.done": "ALREADY TATTOOED",
+      "lb.ask": "Ask me about this flash", "lb.similar": "Ask for something similar",
+      "lb.ar": "Try it on", "lb.link": "Copy link for stories", "lb.copied": "Link copied ✓",
+      "lb.copiedToast": "Link copied! Paste it in the story's “Link” sticker.", "lb.prompt": "Copy this link:", "lb.gone": "This flash is no longer here.",
+      "err.sheet": "Couldn't read the Google Sheet ({msg}). Showing the demo pages instead.", "err.load": "Couldn't load the flashbook data: {msg}",
+      "ar.dialog": "Try it on", "ar.close": "Close", "ar.hint": "Drag to move · pinch to resize and rotate",
+      "ar.camDenied": "I can't reach the camera. Allow camera access in the browser settings and try again.",
+      "ar.camUnsupported": "This browser doesn't allow camera access from the site.",
+      "ar.inApp": "You're inside Instagram's browser, which often blocks the camera. Tap ⋯ and choose “Open in browser” (Safari/Chrome), or take a photo below.",
+      "ar.artFail": "Couldn't load this flash's drawing.",
+      "ar.saveFail": "I can't save the photo from here (protected image). Take a screenshot or try again later.",
+      "ar.saved": "Photo saved!", "ar.iosHint": "In the menu that opens choose “Save Image”.",
+      "ar.photo": "Take or upload a photo", "ar.retry": "Try the camera again", "ar.size": "Size", "ar.rot": "Rotation",
+      "ar.shutter": "Take the photo", "ar.flip": "Switch camera", "ar.alt": "Your photo with the flash", "ar.again": "Retake", "ar.save": "Save photo"
+    }
+  };
+  function pickLang() {
+    var saved = null;
+    try { saved = localStorage.getItem("flashbook-lang"); } catch (e) {}
+    if (saved === "it" || saved === "en") return saved;
+    var nav = String((navigator.languages && navigator.languages[0]) || navigator.language || "").toLowerCase();
+    return /^it/.test(nav) ? "it" : "en";
+  }
+  state.lang = pickLang();
+  function t(key, vars) {
+    var s = (STR[state.lang] && STR[state.lang][key]) || STR.en[key] || key;
+    if (vars) Object.keys(vars).forEach(function (k) { s = s.split("{" + k + "}").join(vars[k]); });
+    return s;
+  }
+  // text from a sheet row in the current language: column "<name>_it"/"<name>_en" first, then the translations list in config.js, then the plain column
+  function loc(row, key) {
+    var v = clean(row[key + "_" + state.lang]);
+    if (v) return v;
+    var base = clean(row[key]), tr = CFG.translations && CFG.translations[state.lang];
+    return tr && Object.prototype.hasOwnProperty.call(tr, base) && clean(tr[base]) ? clean(tr[base]) : base;
+  }
+  // texts that are written in the HTML file itself
+  function applyStatic() {
+    document.documentElement.lang = state.lang;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n]"), function (n) { n.textContent = t(n.getAttribute("data-i18n")); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-aria]"), function (n) { n.setAttribute("aria-label", t(n.getAttribute("data-i18n-aria"))); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-i18n-alt]"), function (n) { n.setAttribute("alt", t(n.getAttribute("data-i18n-alt"))); });
+    var md = document.querySelector('meta[name="description"]');
+    if (md) md.setAttribute("content", t("meta.desc", { handle: state.data ? state.data.handle : "diana.inkkk" }));
+  }
 
   /* ---------------- CSV ---------------- */
   function parseCSV(text) {
@@ -121,7 +215,7 @@
     }
     return get(src).catch(function (err) {
       if (!useSheet) throw err;
-      toast("Couldn't read the Google Sheet (" + err.message + "). Showing the demo pages instead.");
+      toast(t("err.sheet", { msg: err.message }));
       return get(["data/intro.csv", "data/chapters.csv", "data/sketches.csv"]);
     });
   }
@@ -163,22 +257,22 @@
     intro.forEach(function (r) { if (r.field) I[r.field.toLowerCase().replace(/\s+/g, "_")] = r.value || ""; });
     var handle = clean(I.instagram || "diana.inkkk").replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "");
     var model = {
-      greeting: I.greeting || "Hey you!",
-      introText: I.intro_text || "",
+      greeting: loc(I, "greeting") || t("intro.greeting"),
+      introText: loc(I, "intro_text"),
       photo: I.photo_link || "",
       handle: handle,
-      bookingNote: I.booking_note || "",
-      coverTitle: I.cover_title || "FLASHBOOK",
-      coverTags: (I.cover_tags || "Vol. 01, Napoli").split(",").map(clean).filter(Boolean),
-      signoff: I.signoff || "see you soon!",
+      bookingNote: loc(I, "booking_note"),
+      coverTitle: loc(I, "cover_title") || "FLASHBOOK",
+      coverTags: (loc(I, "cover_tags") || "Napoli").split(",").map(clean).filter(function (x) { return x && !/^vol\.?\s*\d+$/i.test(x); }),   // "Vol. 01" style labels are not shown
+      signoff: loc(I, "signoff") || t("thanks.sign"),
       chapters: []
     };
     var list = chapters.map(function (c, i) { c._i = i; return c; }).filter(function (c) { return clean(c.chapter); });
     list.sort(byOrder);
     var idx = {};
     list.forEach(function (c, i) {
-      var ch = { n: pad2(i + 1), name: clean(c.chapter), blurb: clean(c.blurb), color: tabColor(c.tab_color, i), flashes: [] };
-      idx[ch.name.toLowerCase()] = ch;
+      var ch = { n: pad2(i + 1), name: loc(c, "chapter"), blurb: loc(c, "blurb"), color: tabColor(c.tab_color, i), flashes: [] };
+      idx[clean(c.chapter).toLowerCase()] = ch;
       model.chapters.push(ch);
     });
     // permanent link name of every flash: the optional "id" column, otherwise chapter + title.
@@ -195,15 +289,15 @@
       if (!ch) return;
       var st = statusOf(s.status);
       if (st === "hidden") return;
-      var size = clean(s.size_cm || s.size), price = clean(s.price);
+      var size = loc(s, "size_cm") || loc(s, "size"), price = loc(s, "price");
       ch.flashes.push({
         slug: s._slug,
-        title: clean(s.title) || "Untitled",
+        title: loc(s, "title") || t("untitled"),
         image: clean(s.image_link || s.image),
         size: size ? (isNum(size) ? size + " cm" : size) : "",
         price: price ? (isNum(price) ? CFG.currency + price : price) : "",
         status: st,
-        notes: clean(s.notes)
+        notes: loc(s, "notes")
       });
     });
     return model;
@@ -214,7 +308,8 @@
   function pagesOf(sp) { return sp.single ? [sp.single] : [sp.left, sp.right]; }
   function perNow() { return Math.max(1, parseInt(state.single || state.compact ? CFG.perPageMobile : CFG.perPage, 10) || 4); }
   function coverSpread() {
-    return state.single ? { single: { t: "cover" }, name: "Cover" } : { left: { t: "empty" }, right: { t: "cover" }, name: "Cover" };
+    var nm = t("nav.cover");
+    return state.single ? { single: { t: "cover" }, name: nm } : { left: { t: "empty" }, right: { t: "cover" }, name: nm };
   }
 
   function buildSpreads(m) {
@@ -223,9 +318,7 @@
     var pages = [{ t: "intro" }, { t: "contents" }];
     var chapterStart = [];
     m.chapters.forEach(function (ch, ci) {
-      if (!single && pages.length % 2 === 1) pages.push({ t: "filler" });      // spread mode: openers always on a left page
-      chapterStart[ci] = pages.length;
-      pages.push({ t: "opener", ci: ci });
+      chapterStart[ci] = pages.length;       // a chapter starts straight on its first page of flashes
       var total = Math.max(1, Math.ceil(ch.flashes.length / per));
       for (var p = 0; p < total; p++) {
         pages.push({ t: "flashes", ci: ci, start: p * per, items: ch.flashes.slice(p * per, p * per + per), part: p + 1, parts: total });
@@ -234,12 +327,12 @@
     if (!single && pages.length % 2 === 1) pages.push({ t: "filler" });
     pages.push({ t: "back" }, { t: "thanks" });
     pages.forEach(function (p, i) { p.num = i + 1; });
-    m.chapterNum = chapterStart.map(function (pi) { return pi + 1; });   // printed page number of each chapter opener
+    m.chapterNum = chapterStart.map(function (pi) { return pi + 1; });   // printed page number of the first page of each chapter
 
     if (single) {
       var one = [coverSpread()];
       pages.forEach(function (p) {
-        var nm = p.ci != null ? m.chapters[p.ci].name : p.t === "intro" ? "About me" : p.t === "contents" ? "Contents" : p.t === "back" ? "Get in touch" : "";
+        var nm = p.ci != null ? m.chapters[p.ci].name : p.t === "intro" ? t("nav.about") : p.t === "contents" ? t("nav.contents") : p.t === "back" ? t("nav.contact") : "";
         if (p.t === "flashes" && p.parts > 1) nm += " " + p.part + "/" + p.parts;
         one.push({ single: p, ci: p.ci, name: nm });
       });
@@ -251,12 +344,12 @@
     for (var i = 0; i < pages.length; i += 2) {
       var L = pages[i], R = pages[i + 1] || { t: "filler", num: i + 2 };
       var ci = R.ci != null ? R.ci : L.ci;
-      var name = ci != null ? m.chapters[ci].name : (L.t === "intro" ? "About me" : L.t === "back" ? "Get in touch" : "");
+      var name = ci != null ? m.chapters[ci].name : (L.t === "intro" ? t("nav.about") : L.t === "back" ? t("nav.contact") : "");
       var FP = R.t === "flashes" ? R : L.t === "flashes" ? L : null;
       if (FP && FP.parts > 1) name += " " + FP.part + "/" + FP.parts;
       spreads.push({ left: L, right: R, ci: ci, name: name });
     }
-    m.chapterSpread = chapterStart.map(function (pi) { return pi / 2 + 1; });
+    m.chapterSpread = chapterStart.map(function (pi) { return Math.floor(pi / 2) + 1; });
     return spreads;
   }
 
@@ -277,10 +370,12 @@
       case "cover":
         cls += " cover";
         html = '<div class="cover-spine"></div><div class="cover-inner">' +
-          '<div class="cover-sticker"><img src="assets/logo.png" alt="' + esc(m ? m.handle : "diana.inkkk") + ' logo"></div>' +
+          '<div class="cover-print"><img src="assets/logo-serigrafia.png" alt="' + esc(m ? m.handle : "diana.inkkk") + '"></div>' +
           '<div class="cover-title">' + esc(m ? m.coverTitle : "FLASHBOOK") + "</div>" +
-          '<div class="cover-chips">' + (m ? m.coverTags : ["Vol. 01", "Napoli"]).map(function (t) { return "<span>" + esc(t) + "</span>"; }).join("") + "</div>" +
-          '</div><div class="cover-hint hand">open me →</div>';
+          '<div class="cover-chips">' + (m ? m.coverTags : ["Napoli"]).map(function (x) { return "<span>" + esc(x) + "</span>"; }).join("") + "</div>" +
+          '</div><div class="cover-hint hand">' + esc(t("cover.hint")) + "</div>" +
+          '<div class="cover-lang" role="group" aria-label="' + esc(t("cover.lang")) + '">' +
+          ["it", "en"].map(function (l) { return '<button type="button" data-lang="' + l + '" aria-pressed="' + (state.lang === l) + '">' + l.toUpperCase() + "</button>"; }).join("") + "</div>";
         break;
 
       case "intro":
@@ -288,73 +383,64 @@
         html = '<div class="pad"><div class="label-black">' + esc(m.greeting) + "</div>" +
           '<div style="display:flex;flex-direction:column;gap:4px">' + captions(m.introText) + "</div>" +
           (m.photo
-            ? '<div class="polaroid"><div class="tape"></div>' + imgTag(m.photo, "Photo of the artist") + '<div class="hand">that\'s me!</div></div>'
+            ? '<div class="polaroid"><div class="tape"></div>' + imgTag(m.photo, t("intro.photo")) + '<div class="hand">' + esc(t("intro.that")) + "</div></div>"
             : '<img class="logo-sticker" src="assets/logo.png" alt="">') +
-          '<a class="dm-tag" href="https://ig.me/m/' + esc(m.handle) + '" target="_blank" rel="noopener">DM @' + esc(m.handle) + "</a>" +
+          '<a class="dm-tag" href="https://ig.me/m/' + esc(m.handle) + '" target="_blank" rel="noopener">' + esc(t("intro.dm", { handle: m.handle })) + "</a>" +
           "</div>" + pnum(p);
         break;
 
       case "contents":
         cls += " contents";
-        html = '<div class="pad"><h2>What\'s inside</h2><div class="toc">' +
+        html = '<div class="pad"><h2>' + esc(t("contents.title")) + '</h2><div class="toc">' +
           m.chapters.map(function (ch, ci) {
             var sp = m.chapterSpread[ci];
             return '<button type="button" data-goto="' + sp + '"><span class="toc-n">' + ch.n + '</span><span class="toc-name">' + esc(ch.name) +
-              '</span><span class="toc-p">p. ' + m.chapterNum[ci] + "</span></button>";
+              '</span><span class="toc-p">' + esc(t("contents.page", { n: m.chapterNum[ci] })) + "</span></button>";
           }).join("") + "</div>" +
-          "<p>Every flash is drawn by me. Tap one to see it bigger.</p>" +
-          '<div class="hand">tap a post-it to jump ↗</div></div>' + pnum(p);
-        break;
-
-      case "opener":
-        var ch = m.chapters[p.ci], n = ch.flashes.length;
-        cls += " opener";
-        html = '<div class="pad"><div class="top"><div class="hand kicker">chapter</div>' +
-          '<div class="big-n">' + ch.n + '</div><div class="ch-name">' + esc(ch.name) + "</div>" +
-          (ch.blurb ? '<div class="caption"><span>' + esc(ch.blurb) + "</span></div>" : "") + "</div>" +
-          '<div class="bottom"><div class="hand">' + (n ? n + (n === 1 ? " flash" : " flashes") + ", pick one →" : "new flashes coming soon") +
-          '</div><img src="assets/logo.png" alt=""></div></div>' + pnum(p);
+          "<p>" + esc(t("contents.p")) + "</p>" +
+          '<div class="hand">' + esc(t("contents.hand")) + "</div></div>" + pnum(p);
         break;
 
       case "flashes":
         var c = m.chapters[p.ci], tilts = [-4, 3, 2, -3, -2, 4, 1, -1];
         cls += " flashes";
         html = '<div class="pad"><div class="flash-head"><span class="chip">' + c.n + " · " + esc(c.name) + "</span>" +
-          (p.parts > 1 ? '<span class="of">page ' + p.part + " of " + p.parts + "</span>" : "") + "</div>" +
+          (p.parts > 1 ? '<span class="of">' + esc(t("flash.page", { p: p.part, n: p.parts })) + "</span>" : "") + "</div>" +
+          (p.part === 1 && c.blurb ? '<div class="caption blurb"><span>' + esc(c.blurb) + "</span></div>" : "") +
           '<div class="grid' + (state.per <= 2 ? " two" : "") + '">' +
           (p.items.length ? p.items.map(function (f, k) {
             var fi = p.start + k;
             var img = imgTag(f.image, f.title);
             var meta = [f.size, f.price].filter(Boolean).join(" · ");
-            return '<button type="button" class="card" data-ci="' + p.ci + '" data-fi="' + fi + '" aria-label="See ' + esc(f.title) + ' bigger">' +
+            return '<button type="button" class="card" data-ci="' + p.ci + '" data-fi="' + fi + '" aria-label="' + esc(t("flash.see", { title: f.title })) + '">' +
               '<div class="tape" style="transform:rotate(' + tilts[k % tilts.length] + 'deg)"></div>' +
-              '<div class="img">' + (img || '<div class="placeholder">' + PENCIL + "<span>drawing coming soon</span></div>") +
-              (f.status === "taken" ? '<div class="taken-stamp">TAKEN</div>' : "") + "</div>" +
+              '<div class="img">' + (img || '<div class="placeholder">' + PENCIL + "<span>" + esc(t("flash.soon")) + "</span></div>") +
+              (f.status === "taken" ? '<div class="taken-stamp">' + esc(t("flash.taken")) + "</div>" : "") + "</div>" +
               '<div class="row"><span class="title">' + esc(f.title) + "</span>" +
               "</div>" +
               (meta ? '<div class="meta">' + esc(meta) + "</div>" : "") + "</button>";
-          }).join("") : '<div class="placeholder" style="grid-column:1/-1;grid-row:1/-1">' + PENCIL + "<span>new flashes coming soon</span></div>") +
+          }).join("") : '<div class="placeholder" style="grid-column:1/-1;grid-row:1/-1">' + PENCIL + "<span>" + esc(t("flash.none")) + "</span></div>") +
           "</div></div>" + pnum(p);
         break;
 
       case "filler":
         cls += " filler";
-        html = '<div class="pad"><img src="assets/logo.png" alt=""><div class="hand">notes &amp; doodles</div></div>' + pnum(p);
+        html = '<div class="pad"><img src="assets/logo.png" alt=""><div class="hand">' + esc(t("filler")) + "</div></div>" + pnum(p);
         break;
 
       case "back":
         cls += " back";
-        html = '<div class="pad"><div class="label-black">Liked something?</div>' +
-          '<div class="caption"><span>Here\'s how we make it yours</span></div>' +
-          '<ol class="steps"><li><b>1</b><span>Screenshot the flash you like.</span></li>' +
-          '<li><b>2</b><span>DM it to <a href="https://ig.me/m/' + esc(m.handle) + '" target="_blank" rel="noopener"><strong>@' + esc(m.handle) + "</strong></a> with size and placement.</span></li>" +
-          "<li><b>3</b><span>We pick a date together.</span></li></ol>" +
+        html = '<div class="pad"><div class="label-black">' + esc(t("back.title")) + "</div>" +
+          '<div class="caption"><span>' + esc(t("back.sub")) + "</span></div>" +
+          '<ol class="steps"><li><b>1</b><span>' + esc(t("back.s1")) + "</span></li>" +
+          '<li><b>2</b><span>' + esc(t("back.s2a")) + '<a href="https://ig.me/m/' + esc(m.handle) + '" target="_blank" rel="noopener"><strong>@' + esc(m.handle) + "</strong></a>" + esc(t("back.s2b")) + "</span></li>" +
+          "<li><b>3</b><span>" + esc(t("back.s3")) + "</span></li></ol>" +
           (m.bookingNote ? '<div class="hand">' + esc(m.bookingNote) + "</div>" : "") + "</div>" + pnum(p);
         break;
 
       case "thanks":
         cls += " thanks";
-        html = '<div class="pad"><img src="assets/logo.png" alt="' + esc(m.handle) + ' logo"><div class="big">Grazie!</div>' +
+        html = '<div class="pad"><img src="assets/logo.png" alt="' + esc(m.handle) + ' logo"><div class="big">' + esc(t("thanks.big")) + "</div>" +
           '<a href="https://instagram.com/' + esc(m.handle) + '" target="_blank" rel="noopener">@' + esc(m.handle) + "</a>" +
           '<div class="hand">' + esc(m.signoff) + "</div></div>" + pnum(p);
         break;
@@ -377,7 +463,7 @@
     var h = Math.min(state.single ? 150 : state.scale < 0.7 ? 200 : 132, Math.floor((room - gap * (n - 1)) / Math.max(1, n)));
     els.tabs.innerHTML = m.chapters.map(function (ch, ci) {
       var rot = [-2, 1.5, -1, 2, -1.5][ci % 5];
-      return '<button type="button" class="tab" data-goto="' + m.chapterSpread[ci] + '" data-ci="' + ci + '" aria-label="Go to chapter ' + esc(ch.name) + '"' +
+      return '<button type="button" class="tab" data-goto="' + m.chapterSpread[ci] + '" data-ci="' + ci + '" aria-label="' + esc(t("nav.goto", { name: ch.name })) + '"' +
         ' style="height:' + h + "px;background:" + ch.color.bg + ";color:" + ch.color.ink + ";border:" + ch.color.border + ";--rot:" + rot + 'deg">' +
         "<span>" + esc(ch.name) + "</span></button>";
     }).join("");
@@ -548,22 +634,22 @@
     if (els.lb.hidden) lastFocus = document.activeElement;
     state.lb = { ci: ci, fi: fi };
     var img = imgTag(f.image, f.title);
-    els.lbFigure.innerHTML = (img || '<div class="placeholder">' + PENCIL + "<span>drawing coming soon</span></div>") +
-      (f.status === "taken" ? '<div class="taken-stamp">TAKEN</div>' : "");
+    els.lbFigure.innerHTML = (img || '<div class="placeholder">' + PENCIL + "<span>" + esc(t("flash.soon")) + "</span></div>") +
+      (f.status === "taken" ? '<div class="taken-stamp">' + esc(t("flash.taken")) + "</div>" : "");
     els.lbChapter.textContent = ch.n + " · " + ch.name;
     els.lbTitle.textContent = f.title;
     var meta = [];
-    if (f.size) meta.push("<span>Size: " + esc(f.size) + "</span>");
-    if (f.price) meta.push("<span>Price: " + esc(f.price) + "</span>");
+    if (f.size) meta.push("<span>" + esc(t("lb.size")) + ": " + esc(f.size) + "</span>");
+    if (f.price) meta.push("<span>" + esc(t("lb.price")) + ": " + esc(f.price) + "</span>");
     meta.push(f.status === "taken"
-      ? '<span class="pill" style="background:#111;color:#fff">ALREADY TATTOOED</span>'
-      : '<span class="pill">AVAILABLE</span>');
+      ? '<span class="pill" style="background:#111;color:#fff">' + esc(t("lb.done")) + "</span>"
+      : '<span class="pill">' + esc(t("lb.avail")) + "</span>");
     els.lbMeta.innerHTML = meta.join("");
     els.lbNotes.textContent = f.notes || "";
     els.lbAr.hidden = !clean(f.image);
-    els.lbLinkText.textContent = "Copia link per le storie";
+    els.lbLinkText.textContent = t("lb.link");
     els.lbCta.href = "https://ig.me/m/" + state.data.handle;
-    els.lbCta.textContent = f.status === "taken" ? "Ask for something similar" : "Ask me about this flash";
+    els.lbCta.textContent = f.status === "taken" ? t("lb.similar") : t("lb.ask");
     var n = ch.flashes.length;
     els.lbPos.textContent = (fi + 1) + " / " + n;
     els.lbPrev.disabled = els.lbNext.disabled = n < 2;
@@ -600,7 +686,7 @@
   }
   function openFromLink(slug) {
     var hit = findFlash(slug);
-    if (!hit) { toast("Questo flash non c'è più."); syncHash(); return; }
+    if (!hit) { toast(t("lb.gone")); syncHash(); return; }
     state.cur = spreadOf(hit.ci, hit.fi);
     renderTabs(); layout(); showSpread(state.cur);
     openLB(hit.ci, hit.fi);
@@ -634,6 +720,8 @@
   els.prev.addEventListener("click", function () { goTo(state.cur - 1); });
   els.next.addEventListener("click", function () { goTo(state.cur + 1); });
   document.addEventListener("click", function (e) {
+    var lg = e.target.closest("[data-lang]");
+    if (lg && !lg.closest(".flip")) { setLang(lg.getAttribute("data-lang")); return; }
     var g = e.target.closest("[data-goto]");
     if (g && !g.closest(".leaf")) { goTo(parseInt(g.dataset.goto, 10)); return; }
     var c = e.target.closest(".card");
@@ -643,16 +731,16 @@
   els.lbAr.addEventListener("click", function () {
     var f = currentFlash();
     if (!f || !window.FlashbookAR) return;
-    window.FlashbookAR.open({ src: imgSrc(f.image), fallback: imgFallback(f.image), title: f.title, slug: f.slug, toast: toast });
+    window.FlashbookAR.open({ src: imgSrc(f.image), fallback: imgFallback(f.image), title: f.title, slug: f.slug, toast: toast, t: function (k) { return t("ar." + k); } });
   });
   els.lbLink.addEventListener("click", function () {
     var f = currentFlash();
     if (!f) return;
     var url = flashURL(f);
     copyText(url).then(function () {
-      toast("Link copiato! Incollalo nello sticker «Link» della storia.");
-      els.lbLinkText.textContent = "Link copiato ✓";
-    }).catch(function () { window.prompt("Copia questo link:", url); });
+      toast(t("lb.copiedToast"));
+      els.lbLinkText.textContent = t("lb.copied");
+    }).catch(function () { window.prompt(t("lb.prompt"), url); });
   });
   window.addEventListener("hashchange", function () {
     var slug = linkSlug();
@@ -694,6 +782,24 @@
   }
   swipe(els.stage, function () { goTo(state.cur + 1); }, function () { goTo(state.cur - 1); });
   swipe(els.lb, function () { stepLB(1); }, function () { stepLB(-1); });
+
+  // switch language (from the cover): rebuild every text, stay on the same page
+  function setLang(l) {
+    if ((l !== "it" && l !== "en") || l === state.lang) return;
+    state.lang = l;
+    try { localStorage.setItem("flashbook-lang", l); } catch (e) {}
+    applyStatic();
+    if (state.raw) {
+      state.data = buildModel(state.raw[0], state.raw[1], state.raw[2]);
+      state.spreads = buildSpreads(state.data);
+      state.cur = Math.min(state.cur, state.spreads.length - 1);
+      renderTabs();
+    } else {
+      state.spreads = [coverSpread()];
+      state.cur = 0;
+    }
+    showSpread(state.cur);
+  }
 
   var rt = null;
   function onResize() {
@@ -742,15 +848,18 @@
   /* ---------------- boot ---------------- */
   var startHash = parseInt((location.hash || "").slice(1), 10);
   var startSlug = linkSlug();   // read before the first paint rewrites the address bar
+  applyStatic();
   layout();
   state.spreads = [coverSpread()];
   showSpread(0);
 
   loadAll().then(function (res) {
+    state.raw = res;
     state.data = buildModel(res[0], res[1], res[2]);
     state.spreads = buildSpreads(state.data);
     els.handle.textContent = "@" + state.data.handle;
     document.title = "@" + state.data.handle + " · Flashbook";
+    applyStatic();
     state.cur = startHash > 0 && startHash < state.spreads.length ? startHash : 0;
     renderTabs();
     layout();
@@ -758,6 +867,6 @@
     if (startSlug) openFromLink(startSlug);
   }).catch(function (err) {
     console.error(err);
-    toast("Couldn't load the flashbook data: " + err.message);
+    toast(t("err.load", { msg: err.message }));
   });
 })();

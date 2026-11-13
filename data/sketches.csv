@@ -1,13 +1,13 @@
-chapter,order,title,image_link,size_cm,price,status,notes
-Animals,1,Sample flash 1,,8,,available,Replace these demo rows with your own in the Google Sheet.
-Animals,2,Sample flash 2,,10,,available,
-Animals,3,Sample flash 3,,6,,tattooed,
-Animals,4,Sample flash 4,,12,,available,
-Animals,5,Sample flash 5,,7,,available,
-Stamps,1,Sample flash 1,,5,,available,
-Stamps,2,Sample flash 2,,6,,available,
-Stamps,3,Sample flash 3,,5,,available,
-Stamps,4,Sample flash 4,,8,,available,
-Symbols,1,Sample flash 1,,4,,available,
-Symbols,2,Sample flash 2,,5,,available,
-Symbols,3,Sample flash 3,,6,,available,
+chapter,order,title,image_link,size_cm,price,status,notes,title_it
+Animals,1,Sample flash 1,,8,,available,Replace these demo rows with your own in the Google Sheet.,Flash di esempio 1
+Animals,2,Sample flash 2,,10,,available,,Flash di esempio 2
+Animals,3,Sample flash 3,,6,,tattooed,,Flash di esempio 3
+Animals,4,Sample flash 4,,12,,available,,Flash di esempio 4
+Animals,5,Sample flash 5,,7,,available,,Flash di esempio 5
+Stamps,1,Sample flash 1,,5,,available,,Flash di esempio 1
+Stamps,2,Sample flash 2,,6,,available,,Flash di esempio 2
+Stamps,3,Sample flash 3,,5,,available,,Flash di esempio 3
+Stamps,4,Sample flash 4,,8,,available,,Flash di esempio 4
+Symbols,1,Sample flash 1,,4,,available,,Flash di esempio 1
+Symbols,2,Sample flash 2,,5,,available,,Flash di esempio 2
+Symbols,3,Sample flash 3,,6,,available,,Flash di esempio 3

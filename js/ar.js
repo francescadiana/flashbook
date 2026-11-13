@@ -16,6 +16,8 @@
     iosHint: "Nel menu che si apre scegli «Salva immagine»."
   };
 
+  // texts: the book passes its own translated ones (opts.t); the Italian ones above are only a fallback
+  function tr(k) { return (st.opts && st.opts.t && st.opts.t(k)) || T[k] || ""; }
   var $ = function (id) { return document.getElementById(id); };
   var root = $("ar");
   if (!root) { window.FlashbookAR = { open: function () {}, isOpen: function () { return false; } }; return; }
@@ -110,7 +112,7 @@
   }, { passive: false });
 
   var hintTimer = null;
-  function showHint() { el.hint.textContent = T.hint; el.hint.classList.remove("off"); clearTimeout(hintTimer); hintTimer = setTimeout(hideHint, 5000); }
+  function showHint() { el.hint.textContent = tr("hint"); el.hint.classList.remove("off"); clearTimeout(hintTimer); hintTimer = setTimeout(hideHint, 5000); }
   function hideHint() { el.hint.classList.add("off"); }
 
   /* ---------------- loading the drawing ---------------- */
@@ -180,7 +182,7 @@
   function cameraFailed(err) {
     if (tokStale()) return;
     var name = err && err.name;
-    var text = inApp ? T.inApp : (name === "unsupported" ? T.camUnsupported : T.camDenied);
+    var text = inApp ? tr("inApp") : (name === "unsupported" ? tr("camUnsupported") : tr("camDenied"));
     setMode("video");
     el.video.hidden = true;
     el.shutter.disabled = true;
@@ -242,19 +244,19 @@
 
   el.shutter.addEventListener("click", function () {
     var cv;
-    try { cv = compose(); } catch (e) { toast(T.saveFail); return; }
+    try { cv = compose(); } catch (e) { toast(tr("saveFail")); return; }
     try {
       cv.toBlob(function (blob) {
-        if (!blob) { toast(T.saveFail); return; }
+        if (!blob) { toast(tr("saveFail")); return; }
         if (st.blobUrl) URL.revokeObjectURL(st.blobUrl);
         st.blob = blob; st.blobUrl = URL.createObjectURL(blob);
         el.resultImg.src = st.blobUrl;
-        el.saveNote.textContent = isIOS ? T.iosHint : "";
+        el.saveNote.textContent = isIOS ? tr("iosHint") : "";
         el.result.hidden = false;
         el.save.focus();
       }, "image/jpeg", 0.92);
     } catch (e) {               // tainted canvas: the image host doesn't allow saving
-      toast(T.saveFail);
+      toast(tr("saveFail"));
     }
   });
 
@@ -273,11 +275,11 @@
     // iPhone/iPad: the share sheet is the way to reach "Save Image" (Photos)
     if (isIOS && file && navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file], title: (st.opts && st.opts.title) || "Flash" })
-        .then(function () { toast(T.saved); })
+        .then(function () { toast(tr("saved")); })
         .catch(function (e) { if (!e || e.name !== "AbortError") download(st.blob, name); });
     } else {
       download(st.blob, name);
-      toast(T.saved);
+      toast(tr("saved"));
     }
   });
 
@@ -307,7 +309,7 @@
       return startCamera();
     }).catch(function (e) {
       if (tok !== st.token) return;
-      if (e && e.message === "art") { showMsg(T.artFail); return; }
+      if (e && e.message === "art") { showMsg(tr("artFail")); return; }
       cameraFailed(e);
     });
   }

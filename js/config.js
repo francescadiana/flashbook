@@ -21,5 +21,23 @@ window.FLASHBOOK_CONFIG = {
   mobileTextSize: 0.72,
 
   // Currency shown before numeric prices
-  currency: "€"
+  currency: "€",
+
+  // Translations of the texts you write in the Google Sheet.
+  // Best way: add columns/rows named like the original with _it or _en (title_it, notes_en, greeting_it ...).
+  // Quick way: list here "text as written in the Sheet": "translated text", for each language.
+  translations: {
+    it: {
+      "Hey you!": "Ciao!",
+      "I'm a tattoo beginner based in Naples, city center.\nThese are some of my flashes: have a look and reach out!":
+        "Sono agli inizi con il tatuaggio, a Napoli, in centro.\nQuesti sono alcuni dei miei flash: dai un'occhiata e scrivimi!",
+      "see you in Naples!": "ci vediamo a Napoli!",
+      "Animals": "Animali",
+      "Stamps": "Francobolli",
+      "Symbols": "Simboli"
+    },
+    en: {
+      // e.g. "Animali": "Animals"
+    }
+  }
 };
