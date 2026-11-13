@@ -280,16 +280,6 @@ img { display: block; }
 .nav-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .page-label { font-family: var(--display); font-size: 18px; color: var(--paper); min-width: 150px; text-align: center; }
 
-/* short screens (phones in landscape): header left, arrows on the sides */
-body.short .brand { left: 16px; top: 12px; flex-direction: column; align-items: flex-start; gap: 6px; width: 110px; }
-body.short .brand-logo { width: 38px; height: 38px; }
-body.short .brand-name { font-size: 16px; line-height: 1.15; }
-body.short .brand-name em { display: block; }
-body.short .nav { top: 0; bottom: 0; left: 0; right: 0; justify-content: space-between; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(118px, env(safe-area-inset-left)); }
-body.short .page-label { position: fixed; left: 16px; bottom: 14px; min-width: 0; width: 100px; text-align: left; font-size: 16px; line-height: 1.25; }
-body.short .page-label span { display: block; }
-body.short .page-label .sep { display: none; }
-
 /* ---------- lightbox ---------- */
 .lightbox {
   position: fixed; inset: 0; z-index: 50; background: rgba(10,10,10,.94);
@@ -348,21 +338,90 @@ body.short .page-label .sep { display: none; }
   .lb-close { right: 12px; top: 12px; width: 44px; height: 44px; }
 }
 @media (max-width: 700px) and (orientation: portrait) {
+  .lightbox { padding-top: 72px; }
   .lb-inner { flex-direction: column; gap: 18px; }
+  .lb-info { overflow-y: auto; }
   .lb-figure { flex: 1 1 auto; width: 100%; }
   .lb-info { flex: 0 0 auto; }
 }
 
-/* ---------- rotate prompt ---------- */
-.rotate {
-  position: fixed; inset: 0; z-index: 60; background: var(--desk); color: var(--paper);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: 24px;
+
+/* ============ PHONES: one page at a time, nearly full screen ============ */
+/* app.js sets body.single when the window is narrow (< 700px) or short (<= 520px) and gives the book the exact
+   pixel size of the screen (--pw / --ph), so nothing is scaled down. --u shrinks the big display type a little on narrow screens. */
+body.single .brand { display: none; }
+body.single .book { transition: none; perspective: none; }
+body.single .page { width: 100%; height: 100%; left: 0; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.45); }
+body.single .page.left { display: none; }
+body.single .page::after { display: none; }
+body.single .pad, body.single .page.right .pad { inset: 22px 60px 46px 22px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+body.single .pnum, body.single .page.left .pnum, body.single .page.right .pnum { left: 22px; right: auto; bottom: 14px; }
+body.single .page.enter-fwd { animation: enterFwd .28s ease; }
+body.single .page.enter-back { animation: enterBack .28s ease; }
+@keyframes enterFwd { from { opacity: 0; transform: translateX(7%); } to { opacity: 1; transform: none; } }
+@keyframes enterBack { from { opacity: 0; transform: translateX(-7%); } to { opacity: 1; transform: none; } }
+
+/* bottom bar */
+body.single .nav { bottom: env(safe-area-inset-bottom); height: var(--nav-h, 68px); gap: 16px; }
+body.single .page-label { font-size: 16px; min-width: 0; max-width: 56vw; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.single .nav-btn { width: 48px; height: 48px; }
+
+/* post-it tabs: slim strip on the right edge of the page */
+body.single .tabs { left: calc(var(--pw) - 44px); top: 56px; gap: 10px; }
+body.single .tab { width: 44px; padding: 0; border-radius: 2px 8px 8px 2px; }
+body.single .tab span { font-size: 17px; letter-spacing: .5px; }
+
+/* page contents */
+body.single .cover-inner { padding-right: 24px; gap: calc(30px * var(--u)); }
+body.single .cover-sticker { width: calc(280px * var(--u)); height: calc(280px * var(--u)); }
+body.single .cover-sticker img { width: calc(220px * var(--u)); height: calc(210px * var(--u)); }
+body.single .cover-title { font-size: min(calc(88px * var(--u)), calc((var(--pw) - 90px) / 6.4)); padding: 0 12px; overflow-wrap: normal; }
+body.single .cover-chips span { font-size: 18px; }
+body.single .cover-hint { right: 56px; bottom: 22px; }
+
+body.single .intro .pad { gap: 16px; }
+body.single .intro .label-black { font-size: calc(48px * var(--u)); }
+body.single .intro .caption { font-size: 20px; }
+body.single .polaroid img { width: calc(210px * var(--u)); height: calc(210px * var(--u)); }
+body.single .logo-sticker { width: calc(170px * var(--u)); height: calc(160px * var(--u)); }
+body.single .dm-tag { font-size: 20px; }
+
+body.single .contents .pad { gap: 16px; }
+body.single .contents h2 { font-size: calc(56px * var(--u)); }
+body.single .toc button { padding: 10px 0; min-height: 48px; }
+body.single .toc-n { font-size: 18px; }
+body.single .toc-name { font-size: 26px; }
+
+body.single .opener .top { gap: 12px; }
+body.single .big-n { font-size: calc(220px * var(--u)); -webkit-text-stroke-width: 2px; }
+body.single .ch-name { font-size: calc(72px * var(--u)); padding: 8px 14px 12px; }
+body.single .opener .caption { font-size: 20px; }
+body.single .opener .bottom img { width: calc(84px * var(--u)); height: calc(80px * var(--u)); }
+
+body.single .flashes .pad { top: 18px; gap: 12px; }
+body.single .flash-head .chip { font-size: 18px; }
+body.single .grid, body.single .grid.two { gap: 24px 16px; }
+body.single .grid.two { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+body.single .card .title { font-size: 22px; }
+body.single .card .img img { padding: 4px; }
+
+body.single .back .pad { gap: 18px; }
+body.single .back .label-black { font-size: calc(44px * var(--u)); }
+body.single .back .caption { font-size: 20px; }
+body.single .steps li { font-size: 17px; }
+body.single .thanks .big { font-size: calc(64px * var(--u)); }
+body.single .thanks img { width: calc(200px * var(--u)); height: calc(190px * var(--u)); }
+body.single .thanks a { font-size: 22px; }
+body.single .filler img { width: calc(140px * var(--u)); height: calc(134px * var(--u)); }
+
+/* phones held sideways: two flashes side by side, tighter margins */
+@media (orientation: landscape) {
+  body.single .pad, body.single .page.right .pad { inset: 14px 60px 32px 22px; }
+  body.single .pnum, body.single .page.left .pnum, body.single .page.right .pnum { bottom: 8px; }
+  body.single .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 1fr); gap: 20px; }
+  body.single .tabs { top: 18px; gap: 8px; }
+  body.single .tab span { font-size: 14px; letter-spacing: .3px; }
 }
-.rotate img { width: 110px; height: 110px; object-fit: contain; background: var(--paper); border-radius: 50%; padding: 8px; }
-.rotate-icon { width: 64px; height: 64px; fill: none; stroke: var(--green); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; animation: tilt 2.4s ease-in-out infinite; }
-@keyframes tilt { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-.rotate p { font-family: var(--display); font-size: 26px; line-height: 1.2; margin: 0; }
-.rotate button { margin-top: 8px; min-height: 44px; padding: 10px 18px; background: transparent; color: var(--green); border: 2px solid var(--green); font-size: 16px; cursor: pointer; }
 
 /* ---------- toast ---------- */
 .toast {
@@ -462,5 +521,5 @@ body.ar-open { overscroll-behavior: none; }
 @media (prefers-reduced-motion: reduce) {
   .ar-hint, .ar-shutter span { transition: none; }
   .book, .leaf, .tab, .card .img { transition: none !important; }
-  .rotate-icon { animation: none; }
+  .page { animation: none !important; }
 }

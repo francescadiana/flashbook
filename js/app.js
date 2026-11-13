@@ -12,10 +12,10 @@
     tabs: $("tabs"), prev: $("prevBtn"), next: $("nextBtn"), label: $("pageLabel"),
     lb: $("lightbox"), lbFigure: $("lbFigure"), lbChapter: $("lbChapter"), lbTitle: $("lbTitle"), lbMeta: $("lbMeta"),
     lbNotes: $("lbNotes"), lbCta: $("lbCta"), lbAr: $("lbAr"), lbLink: $("lbLink"), lbLinkText: $("lbLinkText"), lbPos: $("lbPos"), lbPrev: $("lbPrev"), lbNext: $("lbNext"), lbClose: $("lbClose"),
-    rotate: $("rotate"), rotateDismiss: $("rotateDismiss"), toast: $("toast"), handle: $("brandHandle")
+    toast: $("toast"), handle: $("brandHandle")
   };
 
-  var state = { data: null, spreads: [], cur: 0, busy: false, scale: 1, compact: false, lb: null, rotateDismissed: false };
+  var state = { data: null, spreads: [], cur: 0, busy: false, scale: 1, compact: false, lb: null, single: false, builtSingle: null, pw: 0, ph: 0 };
 
   /* ---------------- helpers ---------------- */
   function esc(s) {
@@ -210,13 +210,20 @@
   }
 
   /* ---------------- pagination ---------------- */
+  // "single" = phone layout: one page at a time, nearly full screen. Otherwise a two-page spread.
+  function pagesOf(sp) { return sp.single ? [sp.single] : [sp.left, sp.right]; }
+  function perNow() { return Math.max(1, parseInt(state.single || state.compact ? CFG.perPageMobile : CFG.perPage, 10) || 4); }
+  function coverSpread() {
+    return state.single ? { single: { t: "cover" }, name: "Cover" } : { left: { t: "empty" }, right: { t: "cover" }, name: "Cover" };
+  }
+
   function buildSpreads(m) {
-    var per = Math.max(1, parseInt(state.compact ? CFG.perPageMobile : CFG.perPage, 10) || 4);
-    state.per = per;
+    var per = perNow(), single = state.single;
+    state.per = per; state.builtSingle = single;
     var pages = [{ t: "intro" }, { t: "contents" }];
     var chapterStart = [];
     m.chapters.forEach(function (ch, ci) {
-      if (pages.length % 2 === 1) pages.push({ t: "filler" });      // openers always on a left page
+      if (!single && pages.length % 2 === 1) pages.push({ t: "filler" });      // spread mode: openers always on a left page
       chapterStart[ci] = pages.length;
       pages.push({ t: "opener", ci: ci });
       var total = Math.max(1, Math.ceil(ch.flashes.length / per));
@@ -224,11 +231,23 @@
         pages.push({ t: "flashes", ci: ci, start: p * per, items: ch.flashes.slice(p * per, p * per + per), part: p + 1, parts: total });
       }
     });
-    if (pages.length % 2 === 1) pages.push({ t: "filler" });
+    if (!single && pages.length % 2 === 1) pages.push({ t: "filler" });
     pages.push({ t: "back" }, { t: "thanks" });
     pages.forEach(function (p, i) { p.num = i + 1; });
+    m.chapterNum = chapterStart.map(function (pi) { return pi + 1; });   // printed page number of each chapter opener
 
-    var spreads = [{ left: { t: "empty" }, right: { t: "cover" }, name: "Cover" }];
+    if (single) {
+      var one = [coverSpread()];
+      pages.forEach(function (p) {
+        var nm = p.ci != null ? m.chapters[p.ci].name : p.t === "intro" ? "About me" : p.t === "contents" ? "Contents" : p.t === "back" ? "Get in touch" : "";
+        if (p.t === "flashes" && p.parts > 1) nm += " " + p.part + "/" + p.parts;
+        one.push({ single: p, ci: p.ci, name: nm });
+      });
+      m.chapterSpread = chapterStart.map(function (pi) { return pi + 1; });
+      return one;
+    }
+
+    var spreads = [coverSpread()];
     for (var i = 0; i < pages.length; i += 2) {
       var L = pages[i], R = pages[i + 1] || { t: "filler", num: i + 2 };
       var ci = R.ci != null ? R.ci : L.ci;
@@ -281,7 +300,7 @@
           m.chapters.map(function (ch, ci) {
             var sp = m.chapterSpread[ci];
             return '<button type="button" data-goto="' + sp + '"><span class="toc-n">' + ch.n + '</span><span class="toc-name">' + esc(ch.name) +
-              '</span><span class="toc-p">p. ' + (sp * 2 - 1) + "</span></button>";
+              '</span><span class="toc-p">p. ' + m.chapterNum[ci] + "</span></button>";
           }).join("") + "</div>" +
           "<p>Every flash is drawn by me. Tap one to see it bigger.</p>" +
           '<div class="hand">tap a post-it to jump ↗</div></div>' + pnum(p);
@@ -353,8 +372,9 @@
   function renderTabs() {
     var m = state.data;
     if (!m) { els.tabs.innerHTML = ""; return; }
-    var n = m.chapters.length, gap = 14;
-    var h = Math.min(state.scale < 0.7 ? 200 : 132, Math.floor((620 - gap * (n - 1)) / Math.max(1, n)));
+    var n = m.chapters.length, gap = state.single ? 10 : 14;
+    var room = state.single ? Math.max(120, state.ph - (state.pw > state.ph ? 36 : 80)) : 620;
+    var h = Math.min(state.single ? 150 : state.scale < 0.7 ? 200 : 132, Math.floor((room - gap * (n - 1)) / Math.max(1, n)));
     els.tabs.innerHTML = m.chapters.map(function (ch, ci) {
       var rot = [-2, 1.5, -1, 2, -1.5][ci % 5];
       return '<button type="button" class="tab" data-goto="' + m.chapterSpread[ci] + '" data-ci="' + ci + '" aria-label="Go to chapter ' + esc(ch.name) + '"' +
@@ -367,7 +387,7 @@
     var ci = state.spreads[state.cur] ? state.spreads[state.cur].ci : null;
     Array.prototype.forEach.call(els.tabs.children, function (t) {
       var on = String(ci) === t.dataset.ci;
-      t.style.transform = "translateX(" + (on ? 18 : 0) + "px) rotate(" + t.style.getPropertyValue("--rot") + ")";
+      t.style.transform = "translateX(" + (on ? (state.single ? -10 : 18) : 0) + "px) rotate(" + t.style.getPropertyValue("--rot") + ")";
       t.setAttribute("aria-current", on ? "true" : "false");
     });
   }
@@ -385,38 +405,69 @@
   }
 
   /* ---------------- layout / scaling ---------------- */
+  // phones: no scaling at all. The page IS the screen (minus a small margin and the nav bar), text stays at real size.
+  var probe = document.createElement("div");
+  probe.style.cssText = "position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)";
+  document.body.appendChild(probe);
+  function insets() {
+    var c = getComputedStyle(probe);
+    return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
+  }
+
   function layout() {
-    var W = window.innerWidth, H = window.innerHeight;
-    var short = H <= 520;
-    document.body.classList.toggle("short", short);
-    var availW, availH, offX, offY;
-    if (short) { offX = 118; offY = 8; availW = W - offX - 80; availH = H - 16; }
-    else { offX = 24; offY = 84; availW = W - 48; availH = H - offY - 90; }
+    var W = window.innerWidth, H = window.innerHeight, root = document.documentElement.style;
+    var single = W < 700 || H <= 520 || (W < 900 && H > W);   // phones, and tablets held upright
+    var modeChanged = single !== state.single;
+    state.single = single;
+    document.body.classList.toggle("single", single);
+
+    if (single) {
+      var iv = insets(), M = 8, navH = H <= 520 ? 52 : 68;
+      var pw = Math.round(W - 2 * M - iv.l - iv.r), ph = Math.round(H - M - iv.t - navH - iv.b);
+      var changed = modeChanged || Math.abs(pw - state.pw) > 1 || Math.abs(ph - state.ph) > 1;
+      state.pw = pw; state.ph = ph; state.scale = 1; state.compact = true;
+      root.setProperty("--s", "1"); root.setProperty("--k", "1");
+      root.setProperty("--u", (W <= H ? clamp(pw / 540, 0.62, 1) : 0.7).toFixed(3));
+      root.setProperty("--nav-h", navH + "px");
+      root.setProperty("--pw", pw + "px"); root.setProperty("--ph", ph + "px");
+      els.book.style.width = pw + "px"; els.book.style.height = ph + "px";
+      els.book.style.transform = "translate(" + (M + iv.l) + "px," + (M + iv.t) + "px)";
+      return changed;
+    }
+
+    els.book.style.width = ""; els.book.style.height = "";
+    root.setProperty("--u", "1");
+    var availW = W - 48, availH = H - 84 - 90, offX = 24, offY = 84;
     var s = Math.max(0.2, Math.min(availW / (BOOK_W + 2 * TAB_OUT), availH / BOOK_H, 1.3));
-    var changed = Math.abs(s - state.scale) > 0.001;
+    var changedS = modeChanged || Math.abs(s - state.scale) > 0.001;
     state.scale = s;
-    document.documentElement.style.setProperty("--s", s.toFixed(4));
+    root.setProperty("--s", s.toFixed(4));
     state.compact = s < 0.7;
-    document.documentElement.style.setProperty("--k", state.compact ? String(CFG.mobileTextSize) : "1");
+    root.setProperty("--k", state.compact ? String(CFG.mobileTextSize) : "1");
     var x = offX + (availW - BOOK_W * s) / 2 + (state.cur === 0 ? -(PAGE_W / 2) * s : 0);
     var y = offY + (availH - BOOK_H * s) / 2;
     els.book.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + s.toFixed(4) + ")";
-    var portraitPhone = W < 700 && H > W;
-    els.rotate.hidden = !(portraitPhone && !state.rotateDismissed);
-    return changed;
+    return changedS;
   }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   /* ---------------- rendering & flipping ---------------- */
-  function showSpread(i) {
+  function showSpread(i, dir) {
     var sp = state.spreads[i];
-    paint(els.left, sp.left, "left");
-    paint(els.right, sp.right, "right");
+    if (sp.single) {
+      els.left.className = "page left"; els.left.innerHTML = "";
+      paint(els.right, sp.single, "right");
+      if (dir && !reduceMotion) els.right.classList.add("enter-" + dir);   // quick slide instead of the 3D page turn
+    } else {
+      paint(els.left, sp.left, "left");
+      paint(els.right, sp.right, "right");
+    }
     updateTabs(); updateNav(); preload(i + 1);
   }
   function preload(i) {
     var sp = state.spreads[i];
     if (!sp || !state.data) return;
-    [sp.left, sp.right].forEach(function (p) {
+    pagesOf(sp).forEach(function (p) {
       (p.items || []).forEach(function (f) { var u = imgSrc(f.image); if (u) { var im = new Image(); im.src = u; } });
     });
   }
@@ -427,6 +478,7 @@
     var from = state.spreads[state.cur], target = state.spreads[to], fwd = to > state.cur;
     state.cur = to;
     layout();
+    if (state.single) { showSpread(to, fwd ? "fwd" : "back"); return; }
     if (reduceMotion) { showSpread(to); return; }
     state.busy = true;
 
@@ -503,8 +555,8 @@
   }
   function spreadOf(ci, fi) {
     for (var i = 0; i < state.spreads.length; i++) {
-      var sp = state.spreads[i], ps = [sp.left, sp.right];
-      for (var k = 0; k < 2; k++)
+      var sp = state.spreads[i], ps = pagesOf(sp);
+      for (var k = 0; k < ps.length; k++)
         if (ps[k].t === "flashes" && ps[k].ci === ci && fi >= ps[k].start && fi < ps[k].start + state.per) return i;
     }
     return state.data.chapterSpread[ci] || 0;
@@ -517,8 +569,6 @@
   function openFromLink(slug) {
     var hit = findFlash(slug);
     if (!hit) { toast("Questo flash non c'è più."); syncHash(); return; }
-    state.viaLink = true;
-    state.rotateDismissed = true;            // someone coming from a story wants the flash, not the "turn your phone" screen
     state.cur = spreadOf(hit.ci, hit.fi);
     renderTabs(); layout(); showSpread(state.cur);
     openLB(hit.ci, hit.fi);
@@ -545,7 +595,6 @@
     els.lb.hidden = true; state.lb = null;
     if (state.data) document.title = "@" + state.data.handle + " · Flashbook";
     syncHash();
-    if (state.viaLink) { state.viaLink = false; state.rotateDismissed = false; layout(); }
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
@@ -580,7 +629,6 @@
   els.lbPrev.addEventListener("click", function () { stepLB(-1); });
   els.lbNext.addEventListener("click", function () { stepLB(1); });
   els.lb.addEventListener("click", function (e) { if (e.target === els.lb) closeLB(); });
-  els.rotateDismiss.addEventListener("click", function () { state.rotateDismissed = true; onResize(); });
 
   document.addEventListener("keydown", function (e) {
     if (window.FlashbookAR && window.FlashbookAR.isOpen()) return;
@@ -621,7 +669,7 @@
     rt = setTimeout(function () {
       var scaleChanged = layout();
       if (!state.data || state.busy) return;
-      if (state.per !== (state.compact ? CFG.perPageMobile : CFG.perPage)) {
+      if (state.per !== perNow() || state.builtSingle !== state.single) {
         rebuildKeepingPlace();
       } else if (scaleChanged) { renderTabs(); showSpread(state.cur); }
     }, 60);
@@ -629,24 +677,24 @@
   window.addEventListener("resize", onResize);
   window.addEventListener("orientationchange", onResize);
 
-  // re-paginate (e.g. phone rotated) and stay on the same chapter / flash
+  // re-paginate (e.g. phone rotated) and stay on the same chapter / flash / page
   function rebuildKeepingPlace() {
-    var old = state.spreads[state.cur] || {}, ref = null;
-    [old.left, old.right].forEach(function (p) { if (!ref && p && p.ci != null) ref = { ci: p.ci, start: p.start || 0, t: p.t }; });
-    var oldT = old.left ? old.left.t : null;
+    var old = state.spreads[state.cur] || {}, ref = null, first = pagesOf(old)[0] || {};
+    pagesOf(old).forEach(function (p) { if (!ref && p && p.ci != null) ref = { ci: p.ci, start: p.start || 0, t: p.t }; });
     state.spreads = buildSpreads(state.data);
     var to = 0;
     if (ref) {
       to = state.data.chapterSpread[ref.ci];
       if (ref.t === "flashes") {
         state.spreads.forEach(function (sp, i) {
-          [sp.left, sp.right].forEach(function (p) {
+          pagesOf(sp).forEach(function (p) {
             if (p.t === "flashes" && p.ci === ref.ci && ref.start >= p.start && ref.start < p.start + state.per) to = i;
           });
         });
       }
-    } else if (oldT === "back") to = state.spreads.length - 1;
-    else if (oldT === "intro") to = 1;
+    } else if (first.t && first.t !== "cover") {
+      state.spreads.forEach(function (sp, i) { if (!to && pagesOf(sp).some(function (p) { return p.t === first.t; })) to = i; });
+    }
     state.cur = to;
     renderTabs(); layout(); showSpread(to);
   }
@@ -662,8 +710,8 @@
   /* ---------------- boot ---------------- */
   var startHash = parseInt((location.hash || "").slice(1), 10);
   var startSlug = linkSlug();   // read before the first paint rewrites the address bar
-  state.spreads = [{ left: { t: "empty" }, right: { t: "cover" }, name: "Cover" }];
   layout();
+  state.spreads = [coverSpread()];
   showSpread(0);
 
   loadAll().then(function (res) {
