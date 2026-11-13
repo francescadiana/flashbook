@@ -11,7 +11,7 @@
     stage: $("stage"), book: $("book"), left: $("leftPage"), right: $("rightPage"), leafHost: $("leafHost"),
     tabs: $("tabs"), prev: $("prevBtn"), next: $("nextBtn"), label: $("pageLabel"),
     lb: $("lightbox"), lbFigure: $("lbFigure"), lbChapter: $("lbChapter"), lbTitle: $("lbTitle"), lbMeta: $("lbMeta"),
-    lbNotes: $("lbNotes"), lbCta: $("lbCta"), lbPos: $("lbPos"), lbPrev: $("lbPrev"), lbNext: $("lbNext"), lbClose: $("lbClose"),
+    lbNotes: $("lbNotes"), lbCta: $("lbCta"), lbAr: $("lbAr"), lbLink: $("lbLink"), lbLinkText: $("lbLinkText"), lbPos: $("lbPos"), lbPrev: $("lbPrev"), lbNext: $("lbNext"), lbClose: $("lbClose"),
     rotate: $("rotate"), rotateDismiss: $("rotateDismiss"), toast: $("toast"), handle: $("brandHandle")
   };
 
@@ -26,6 +26,11 @@
   function pad2(n) { return n < 10 ? "0" + n : String(n); }
   function clean(s) { return String(s == null ? "" : s).trim(); }
   function isNum(s) { return /^\d+([.,]\d+)?$/.test(clean(s)); }
+  function slugify(s) {
+    s = clean(s).toLowerCase();
+    if (s.normalize) s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
 
   var PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg>';
 
@@ -176,13 +181,23 @@
       idx[ch.name.toLowerCase()] = ch;
       model.chapters.push(ch);
     });
-    sketches.map(function (s, i) { s._i = i; return s; }).sort(byOrder).forEach(function (s) {
+    // permanent link name of every flash: the optional "id" column, otherwise chapter + title.
+    // Computed in sheet-row order before hidden rows are dropped, so hiding a flash never changes other links.
+    var used = {};
+    sketches.forEach(function (s, i) {
+      s._i = i;
+      var base = slugify(s.id) || slugify(clean(s.chapter) + " " + (clean(s.title) || "flash")) || "flash", slug = base, n = 2;
+      while (used[slug]) slug = base + "-" + n++;
+      used[slug] = 1; s._slug = slug;
+    });
+    sketches.slice().sort(byOrder).forEach(function (s) {
       var ch = idx[clean(s.chapter).toLowerCase()];
       if (!ch) return;
       var st = statusOf(s.status);
       if (st === "hidden") return;
       var size = clean(s.size_cm || s.size), price = clean(s.price);
       ch.flashes.push({
+        slug: s._slug,
         title: clean(s.title) || "Untitled",
         image: clean(s.image_link || s.image),
         size: size ? (isNum(size) ? size + " cm" : size) : "",
@@ -361,7 +376,12 @@
     els.prev.disabled = state.cur === 0;
     els.next.disabled = state.cur >= N - 1;
     els.label.innerHTML = "<span>" + esc(sp ? sp.name : "") + '</span><span class="sep"> · </span><span>' + (state.cur + 1) + " / " + N + "</span>";
-    if (history.replaceState) history.replaceState(null, "", state.cur ? "#" + state.cur : location.pathname + location.search);
+    syncHash();
+  }
+  // address bar: "#<spread>" while reading, "#f/<flash>" while a flash is open (that one is the shareable link)
+  function syncHash() {
+    if (state.lb || !history.replaceState) return;
+    history.replaceState(null, "", state.cur ? "#" + state.cur : location.pathname + location.search);
   }
 
   /* ---------------- layout / scaling ---------------- */
@@ -456,6 +476,8 @@
       : '<span class="pill">AVAILABLE</span>');
     els.lbMeta.innerHTML = meta.join("");
     els.lbNotes.textContent = f.notes || "";
+    els.lbAr.hidden = !clean(f.image);
+    els.lbLinkText.textContent = "Copia link per le storie";
     els.lbCta.href = "https://ig.me/m/" + state.data.handle;
     els.lbCta.textContent = f.status === "taken" ? "Ask for something similar" : "Ask me about this flash";
     var n = ch.flashes.length;
@@ -463,6 +485,56 @@
     els.lbPrev.disabled = els.lbNext.disabled = n < 2;
     els.lb.hidden = false;
     els.lbClose.focus();
+    if (history.replaceState) history.replaceState(null, "", "#f/" + encodeURIComponent(f.slug));
+    document.title = f.title + " · @" + state.data.handle + " · Flashbook";
+  }
+  function currentFlash() {
+    return state.lb ? state.data.chapters[state.lb.ci].flashes[state.lb.fi] : null;
+  }
+  function flashURL(f) { return location.href.split("#")[0] + "#f/" + encodeURIComponent(f.slug); }
+
+  /* direct links: find a flash by its link name, jump the book to its page and open it */
+  function findFlash(slug) {
+    var chs = state.data.chapters;
+    for (var ci = 0; ci < chs.length; ci++)
+      for (var fi = 0; fi < chs[ci].flashes.length; fi++)
+        if (chs[ci].flashes[fi].slug === slug) return { ci: ci, fi: fi };
+    return null;
+  }
+  function spreadOf(ci, fi) {
+    for (var i = 0; i < state.spreads.length; i++) {
+      var sp = state.spreads[i], ps = [sp.left, sp.right];
+      for (var k = 0; k < 2; k++)
+        if (ps[k].t === "flashes" && ps[k].ci === ci && fi >= ps[k].start && fi < ps[k].start + state.per) return i;
+    }
+    return state.data.chapterSpread[ci] || 0;
+  }
+  function linkSlug() {
+    var m = /^#f\/(.+)$/.exec(location.hash || "");
+    if (!m) return null;
+    try { return decodeURIComponent(m[1]); } catch (e) { return m[1]; }
+  }
+  function openFromLink(slug) {
+    var hit = findFlash(slug);
+    if (!hit) { toast("Questo flash non c'è più."); syncHash(); return; }
+    state.viaLink = true;
+    state.rotateDismissed = true;            // someone coming from a story wants the flash, not the "turn your phone" screen
+    state.cur = spreadOf(hit.ci, hit.fi);
+    renderTabs(); layout(); showSpread(state.cur);
+    openLB(hit.ci, hit.fi);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+    return new Promise(function (ok, no) {
+      var t = document.createElement("textarea");
+      t.value = text; t.setAttribute("readonly", ""); t.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(t); t.select(); t.setSelectionRange(0, text.length);
+      var done = false;
+      try { done = document.execCommand("copy"); } catch (e) {}
+      t.remove();
+      done ? ok() : no(new Error("copy"));
+    });
   }
   function stepLB(d) {
     if (!state.lb) return;
@@ -471,6 +543,9 @@
   }
   function closeLB() {
     els.lb.hidden = true; state.lb = null;
+    if (state.data) document.title = "@" + state.data.handle + " · Flashbook";
+    syncHash();
+    if (state.viaLink) { state.viaLink = false; state.rotateDismissed = false; layout(); }
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
@@ -484,12 +559,31 @@
     if (c && !c.closest(".leaf")) openLB(parseInt(c.dataset.ci, 10), parseInt(c.dataset.fi, 10));
   });
   els.lbClose.addEventListener("click", closeLB);
+  els.lbAr.addEventListener("click", function () {
+    var f = currentFlash();
+    if (!f || !window.FlashbookAR) return;
+    window.FlashbookAR.open({ src: imgSrc(f.image), fallback: imgFallback(f.image), title: f.title, slug: f.slug, toast: toast });
+  });
+  els.lbLink.addEventListener("click", function () {
+    var f = currentFlash();
+    if (!f) return;
+    var url = flashURL(f);
+    copyText(url).then(function () {
+      toast("Link copiato! Incollalo nello sticker «Link» della storia.");
+      els.lbLinkText.textContent = "Link copiato ✓";
+    }).catch(function () { window.prompt("Copia questo link:", url); });
+  });
+  window.addEventListener("hashchange", function () {
+    var slug = linkSlug();
+    if (slug && state.data && !(window.FlashbookAR && window.FlashbookAR.isOpen())) openFromLink(slug);
+  });
   els.lbPrev.addEventListener("click", function () { stepLB(-1); });
   els.lbNext.addEventListener("click", function () { stepLB(1); });
   els.lb.addEventListener("click", function (e) { if (e.target === els.lb) closeLB(); });
   els.rotateDismiss.addEventListener("click", function () { state.rotateDismissed = true; onResize(); });
 
   document.addEventListener("keydown", function (e) {
+    if (window.FlashbookAR && window.FlashbookAR.isOpen()) return;
     if (!els.lb.hidden) {
       if (e.key === "Escape") closeLB();
       else if (e.key === "ArrowLeft") stepLB(-1);
@@ -557,14 +651,17 @@
     renderTabs(); layout(); showSpread(to);
   }
 
+  var toastTimer = null;
   function toast(msg) {
     els.toast.textContent = msg;
     els.toast.hidden = false;
-    setTimeout(function () { els.toast.hidden = true; }, 7000);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { els.toast.hidden = true; }, 7000);
   }
 
   /* ---------------- boot ---------------- */
   var startHash = parseInt((location.hash || "").slice(1), 10);
+  var startSlug = linkSlug();   // read before the first paint rewrites the address bar
   state.spreads = [{ left: { t: "empty" }, right: { t: "cover" }, name: "Cover" }];
   layout();
   showSpread(0);
@@ -578,6 +675,7 @@
     renderTabs();
     layout();
     showSpread(state.cur);
+    if (startSlug) openFromLink(startSlug);
   }).catch(function (err) {
     console.error(err);
     toast("Couldn't load the flashbook data: " + err.message);

@@ -7,6 +7,8 @@ It works on desktop and on phones held sideways (landscape).
 - 4 flashes per page on a computer, 2 bigger ones on a phone. Extra flashes flow onto new pages automatically
 - Tap or click a flash to see it bigger, with size, price and a DM button
 - Arrows, swipe, or the ← → keys turn the pages
+- **"Provatelo addosso"**: try any flash on yourself with the camera, take a photo and save it to the device
+- **Direct link for every flash**, ready for Instagram stories
 
 ---
 
@@ -81,8 +83,32 @@ You never need to touch GitHub again. Changes in the Sheet show up when the page
 | price | Just a number (`80`) becomes "€80"; or write text like `from €60` |
 | status | `available`, `tattooed` (shows a TAKEN stamp), or `hidden` (not shown) |
 | notes | Optional text shown in the enlarged view |
+| id | Optional. A fixed name for the flash's direct link (see section 4) |
 
 To add a chapter, add a row in **Chapters** and use its name in **Sketches**. To rename a chapter, rename it in both tabs.
+
+## 4. "Provatelo addosso" (try it on) and story links
+
+### Try it on
+Open any flash and press **Provatelo addosso**. The camera opens with the flash on top:
+drag to move it, pinch to resize and rotate (on a computer: mouse wheel to resize, Shift + wheel to rotate, or use the sliders).
+**Effetto inchiostro** makes the white of the drawing transparent, so it looks like ink on skin.
+Press the round button to take the photo, then **Salva foto** (on iPhone a menu opens: choose *Salva immagine*).
+Photos never leave the visitor's device.
+
+The button is hidden for flashes without an image. Camera access needs the https link (GitHub Pages is fine).
+If the camera is blocked (typical inside Instagram's own browser) visitors get a button to take/upload a photo instead,
+plus a hint to open the link in Safari/Chrome.
+For saving to work, the image must allow it: files in the `flashes/` folder always work; Google Drive images normally do.
+
+### Direct link for every flash
+Open a flash and press **Copia link per le storie**. Then, in an Instagram story, add the **Link** sticker and paste.
+The link looks like `https://YOUR-USERNAME.github.io/flashbook/#f/animals-sample-flash-1`
+and opens the book on that page with the flash already open.
+
+- Every new row in the Sheet gets its link automatically, built from `chapter + title`.
+- Renaming a flash or its chapter changes its link. To keep a link forever, add an optional column called **`id`** to the Sketches tab and write a short name there (for example `gatto-1`): the link becomes `#f/gatto-1`.
+- Hiding a flash (`status = hidden`) does not change the links of the others.
 
 ## Troubleshooting
 
@@ -99,6 +125,7 @@ index.html               the page
 css/style.css            look & feel (colors at the top)
 js/config.js             your settings: Sheet ID, flashes per page
 js/app.js                the book engine
+js/ar.js                 "Provatelo addosso": camera, overlay, photo capture (texts at the top)
 assets/logo.png          logo (also the browser tab icon)
 data/*.csv               demo content, used when no Sheet is connected
 flashes/                 optional: put image files here instead of Drive
