@@ -280,6 +280,16 @@ img { display: block; }
 .nav-btn:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .page-label { font-family: var(--display); font-size: 18px; color: var(--paper); min-width: 150px; text-align: center; }
 
+/* short screens (phones held sideways): header on the left, arrows on the sides */
+body.short .brand { left: 16px; top: 12px; flex-direction: column; align-items: flex-start; gap: 6px; width: 110px; }
+body.short .brand-logo { width: 38px; height: 38px; }
+body.short .brand-name { font-size: 16px; line-height: 1.15; }
+body.short .brand-name em { display: block; }
+body.short .nav { top: 0; bottom: 0; left: 0; right: 0; justify-content: space-between; padding: 0 max(16px, env(safe-area-inset-right)) 0 max(118px, env(safe-area-inset-left)); }
+body.short .page-label { position: fixed; left: 16px; bottom: 14px; min-width: 0; width: 100px; text-align: left; font-size: 16px; line-height: 1.25; }
+body.short .page-label span { display: block; }
+body.short .page-label .sep { display: none; }
+
 /* ---------- lightbox ---------- */
 .lightbox {
   position: fixed; inset: 0; z-index: 50; background: rgba(10,10,10,.94);
